@@ -1,0 +1,7 @@
+.sec-title { font-weight: 700; font-size: 30rpx; }
+.row.between { padding: 14rpx 0; border-bottom: 1rpx solid var(--border); }
+.row.between:last-child { border-bottom: none; }
+.val { color: var(--primary); font-weight: 600; }
+.pool-row { display: flex; justify-content: space-between; align-items: center; padding: 18rpx 0; border-bottom: 1rpx solid var(--border); }
+.pool-row:last-child { border-bottom: none; }
+.pname { font-weight: 600; }
