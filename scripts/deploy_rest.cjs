@@ -52,8 +52,12 @@ function req(method, apiPath, body) {
   });
 }
 
+// 需要排除的目录（不上传）
+const EXCLUDE = new Set(['.git', '.workbuddy', 'node_modules', '.DS_Store']);
+
 function walk(dir, base, out) {
   for (const name of fs.readdirSync(dir)) {
+    if (EXCLUDE.has(name)) continue;
     const full = path.join(dir, name);
     const rel = path.join(base, name).split(path.sep).join('/');
     if (fs.statSync(full).isDirectory()) walk(full, rel, out);
@@ -64,18 +68,17 @@ function walk(dir, base, out) {
 
 async function main() {
   const files = [];
-  // 新增 / 更新：项目配置、小程序前端、云函数、部署脚本
-  files.push('project.config.json', 'README.md');
-  walk(path.join(ROOT, 'miniprogram'), 'miniprogram', files);
-  walk(path.join(ROOT, 'cloudfunctions'), 'cloudfunctions', files);
-  walk(path.join(ROOT, 'scripts'), 'scripts', files);
+  // 全量遍历仓库（排除 .git/.workbuddy/node_modules），避免遗漏 prototype/ docs/ 等目录。
+  // 注意：这里曾因硬编码目录清单而漏掉 prototype/，导致 GitHub Pages 上的原型没同步更新。
+  walk(ROOT, '', files);
 
   let ok = 0, fail = 0;
   for (const rel of files) {
     const localPath = path.join(ROOT, rel);
     const content = fs.readFileSync(localPath);
     const b64 = content.toString('base64');
-    const apiPath = `/repos/${OWNER}/${REPO}/contents/${rel}`;
+    // 逐段 encodeURIComponent：中文文件名需转义，但保留 / 作为路径分隔符
+    const apiPath = `/repos/${OWNER}/${REPO}/contents/${rel.split('/').map(encodeURIComponent).join('/')}`;
     // 取已有 sha
     let sha = null;
     const get = await req('GET', `${apiPath}?ref=${BRANCH}`);
