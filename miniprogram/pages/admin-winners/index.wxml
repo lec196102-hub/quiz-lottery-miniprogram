@@ -1,0 +1,37 @@
+<view class="container">
+  <view class="card search">
+    <view class="row gap">
+      <input class="input" placeholder="搜索姓名/工号" value="{{keyword}}" bindinput="onSearch" confirm-type="search" bindconfirm="doSearch" />
+      <button class="btn primary" size="mini" bindtap="doSearch">搜索</button>
+    </view>
+    <view class="filters mt12">
+      <text class="chip {{filter==='all'?'on':''}}" data-f="all" bindtap="setFilter">全部</text>
+      <text class="chip {{filter==='won'?'on':''}}" data-f="won" bindtap="setFilter">中奖</text>
+      <text class="chip {{filter==='1'?'on':''}}" data-f="1" bindtap="setFilter">一等奖</text>
+      <text class="chip {{filter==='2'?'on':''}}" data-f="2" bindtap="setFilter">二等奖</text>
+      <text class="chip {{filter==='3'?'on':''}}" data-f="3" bindtap="setFilter">三等奖</text>
+    </view>
+  </view>
+
+  <view class="card" wx:for="{{list}}" wx:key="_id">
+    <view class="w-head">
+      <text class="w-name">{{item.name}}</text>
+      <text class="badge {{item.level ? 'green' : 'gray'}}">{{item.levelText}}</text>
+    </view>
+    <view class="row between mt8">
+      <text class="muted">工号 {{item.empNo}}</text>
+      <text class="muted">{{item.wonAtText}}</text>
+    </view>
+    <view wx:if="{{item.prizeName}}" class="prize mt8">{{item.prizeName}}</view>
+  </view>
+
+  <view wx:if="{{!list.length}}" class="card center muted">暂无记录</view>
+
+  <view class="row between mt16" wx:if="{{total>pageSize}}">
+    <button class="btn" size="mini" bindtap="prev" disabled="{{page===1}}">上一页</button>
+    <text class="muted">第 {{page}} 页 / 共 {{total}} 条</text>
+    <button class="btn" size="mini" bindtap="next" disabled="{{page*pageSize>=total}}">下一页</button>
+  </view>
+
+  <button class="btn primary block mt24" bindtap="exportCsv">导出 CSV（复制到剪贴板）</button>
+</view>
