@@ -1,0 +1,30 @@
+<view class="container" wx:if="{{act}}">
+  <view class="card">
+    <view class="sec-title">抽奖规则</view>
+    <view class="row between mt12" bindtap="editRate">
+      <text class="muted">中奖概率</text>
+      <text class="val">{{act.winRate*100}}% ›</text>
+    </view>
+    <view class="row between mt12" bindtap="editMode">
+      <text class="muted">等级分配策略</text>
+      <text class="val">{{act.weightMode}} ›</text>
+    </view>
+    <view class="row between mt12" bindtap="editEmpty">
+      <text class="muted">奖池耗尽</text>
+      <text class="val">{{act.poolEmptyBehavior}} ›</text>
+    </view>
+  </view>
+
+  <view class="card">
+    <view class="sec-title">奖品库存</view>
+    <view class="pool-row" wx:for="{{prizes}}" wx:key="level">
+      <view>
+        <text class="pname">{{item.name}} · {{item.desc}}</text>
+        <text class="muted"> 剩 {{item.remain}}/{{item.total}}</text>
+      </view>
+      <button class="btn" size="mini" data-level="{{item.level}}" bindtap="editPrize">调整</button>
+    </view>
+  </view>
+
+  <view class="muted center mt16">调整后即时生效；降低库存不会回收已抽出奖品。</view>
+</view>
