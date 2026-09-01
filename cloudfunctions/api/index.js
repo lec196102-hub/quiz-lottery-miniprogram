@@ -84,6 +84,8 @@ const handlers = {
     empNo = (empNo || '').trim();
     if (name.length < 2 || name.length > 10) throw new BizError('姓名长度应为 2–10 个字符');
     if (!/^[A-Za-z0-9]{4,12}$/.test(empNo)) throw new BizError('工号应为 4–12 位字母或数字');
+    // 工号统一大写：避免 a10086 / A10086 被判成两个不同的人而绕过「一人一次」
+    empNo = empNo.toUpperCase();
 
     const exist = await db.collection('participants')
       .where({ activityId: ACTIVITY_ID, empNo }).get();
@@ -174,6 +176,29 @@ const handlers = {
       if (!participant.passed) throw new BizError('答题未通关，暂无抽奖资格', 'NOT_PASSED');
       if (participant.drawn) throw new BizError('每人仅可参与一次抽奖', 'ALREADY_DRAWN');
 
+      // 【并发安全】原子占坑：WHERE _id=? AND drawn=false UPDATE drawn=true
+      // 上面的 participant.drawn 只是快照读，快照隔离下并发事务会同时读到 false 并全部放行。
+      // 这里用与库存扣减同款的条件原子更新抢锁：并发下仅一个事务 updated===1，其余回滚。
+      // 必须放在扣减库存之前，抢锁失败直接回滚，避免白白消耗奖品。
+      const lock = await t.collection('participants')
+        .where({ _id: participant._id, drawn: false })
+        .update({ data: { drawn: true } });
+      if (lock.stats.updated !== 1) {
+        await t.rollback();
+        throw new BizError('每人仅可参与一次抽奖', 'ALREADY_DRAWN');
+      }
+
+      // 【需求 7】工号维度去重：需求要求「同一工号+姓名仅一次」。
+      // 上面的原子锁只保证同一 openid 的并发安全；这里再拦「同一工号换微信号注册」的情况。
+      // 与唯一索引 (activityId, empNo) 互为双保险。
+      const dupRes = await t.collection('lotteryRecords')
+        .where({ activityId: ACTIVITY_ID, empNo: participant.empNo })
+        .get();
+      if (dupRes.data.length) {
+        await t.rollback();
+        throw new BizError('该工号已参与过抽奖，每人仅可参与一次', 'ALREADY_DRAWN');
+      }
+
       const prizeRes = await t.collection('prizes').where({ activityId: ACTIVITY_ID }).get();
       const prizes = prizeRes.data;
       const poolEmpty = prizes.every((x) => x.remain <= 0);
@@ -211,8 +236,9 @@ const handlers = {
           level, prizeName, wonAt, remark: level ? '' : '谢谢参与'
         }
       });
+      // drawn 已由上面的原子锁置位，此处只补写时间
       await t.collection('participants').doc(participant._id).update({
-        data: { drawn: true, drawnAt: wonAt }
+        data: { drawnAt: wonAt }
       });
 
       await t.commit();
