@@ -223,7 +223,7 @@ table{width:100%;border-collapse:collapse}
 <h2 class="sr-only">答题抽奖小程序可交互原型，包含参与者端 7 个页面与管理后台 5 个页面</h2>
 
 <script type="module">
-(function(){
+const __m = (function(){
 /* === test_data.js (inlined) === */
 /**
  * test_data.js —— 静态测试数据层
@@ -1191,7 +1191,8 @@ const Data = {
 
 
 return { Data, BizError, TEST_UTILS };
-})()
+})();
+const Data = __m.Data, BizError = __m.BizError, TEST_UTILS = __m.TEST_UTILS;
 
 /* ============================================================
  * 0. 全局状态
