@@ -1,0 +1,7 @@
+.search .muted { font-size: 23rpx; }
+.filters { display: flex; gap: 12rpx; flex-wrap: wrap; }
+.chip { font-size: 24rpx; padding: 8rpx 20rpx; border-radius: 30rpx; background: #EFEFEA; color: var(--text2); }
+.chip.on { background: var(--primary); color: #fff; }
+.w-head { display: flex; align-items: center; gap: 12rpx; }
+.w-name { font-size: 30rpx; font-weight: 700; }
+.prize { font-size: 26rpx; color: var(--success); font-weight: 600; }
