@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="hero card">
+    <view class="hero-title">{{activity.name}}</view>
+    <view class="hero-desc">{{activity.description}}</view>
+  </view>
+
+  <view class="card stats">
+    <view class="stat"><view class="stat-num">{{activity.questionCount}}</view><view class="stat-label">抽题数</view></view>
+    <view class="stat"><view class="stat-num">{{activity.passScore}}</view><view class="stat-label">通关题数</view></view>
+    <view class="stat"><view class="stat-num">{{activity.winRate*100}}%</view><view class="stat-label">中奖概率</view></view>
+  </view>
+
+  <view class="card status {{statusType}}">
+    <view class="status-label">当前状态</view>
+    <view class="status-text">{{statusText}}</view>
+  </view>
+
+  <button class="btn primary block mt24" bindtap="goPrimary">{{primaryText}}</button>
+
+  <view class="muted mt24 center">每人可重复答题，但每个工号仅可抽奖一次</view>
+</view>
