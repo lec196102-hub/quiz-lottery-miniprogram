@@ -1,0 +1,10 @@
+.search .muted { font-size: 23rpx; }
+.q-head { display: flex; align-items: center; gap: 10rpx; flex-wrap: wrap; }
+.q-head .btn { margin-left: auto; }
+.q-title { font-size: 28rpx; font-weight: 600; line-height: 1.5; }
+.opts-mini { display: flex; flex-wrap: wrap; gap: 8rpx 24rpx; font-size: 24rpx; color: var(--text2); }
+.opts-mini .ans { color: var(--success); font-weight: 700; }
+.mask { position: fixed; inset: 0; background: rgba(0,0,0,.45); display: flex; align-items: flex-end; z-index: 99; }
+.sheet { width: 100%; border-radius: 24rpx 24rpx 0 0; padding: 32rpx; }
+.sec-title { font-weight: 700; font-size: 30rpx; }
+.ta { width: 100%; height: 320rpx; border: 1rpx solid var(--border); border-radius: 12rpx; padding: 16rpx; margin-top: 12rpx; box-sizing: border-box; font-size: 24rpx; }
