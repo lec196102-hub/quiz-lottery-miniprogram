@@ -47,15 +47,24 @@
 3. **上传云函数**：在开发者工具中，分别右键 `cloudfunctions/api` 与 `cloudfunctions/initData` →「上传并部署：云端安装依赖」。
 4. **初始化数据**：上传后右键 `cloudfunctions/initData` →「上传并运行」（触发一次），把活动配置、奖品（5/50/100）、150 道题库、管理员账号写入云数据库。
    - 管理员演示账号：`admin / admin123`（登录后台 `pages/admin-login`）。
-5. **开通云数据库集合**：需创建集合 `activity`、`prizes`、`questions`、`participants`、`lotteryRecords`、`admins`（字段见 `cloudfunctions/initData/index.js`）。建议为 `lotteryRecords` 的 `(activityId, empNo)` 建立唯一索引以防并发重复。
+5. **开通云数据库集合**：需创建集合 `activity`、`prizes`、`questions`、`participants`、`lotteryRecords`、`admins`（字段见 `cloudfunctions/initData/index.js`）。
+   - **必须为 `lotteryRecords` 建立唯一索引 `(activityId, empNo)`**：这是数据库层的最后一道防线。
+     代码层的原子锁已能挡住绝大多数并发重复，但唯一索引能在任何代码 bug 或极端异常下兜底，确保物理上不可能一人两条记录。
 6. **预览/发布**：编译并预览小程序；正式发布走微信审核流程。
 
 ## 抽奖算法要点（风险最高、必须做对的部分，服务端权威）
 
+0. **阶段零 · 原子抢锁（防重复抽奖）**：`UPDATE participants SET drawn=true WHERE _id=? AND drawn=false`。
+   仅靠「先读 `drawn` 再判断」**在并发下是无效的**——快照隔离会让多个事务同时读到 `drawn:false` 并全部放行
+   （压测实测：同一用户 200 并发 → 产生 200 条抽奖记录）。必须用条件原子更新抢锁，
+   抢不到（updated≠1）立即回滚。且必须放在扣减库存**之前**，避免失败方白白消耗奖品。
 1. **阶段一 · 中奖判定**：以恒定 `winRate=0.25` 判定「中不中」，不随奖池变动（抽完仍保持 25%）。
 2. **阶段二 · 加权选级**：在 `remain>0` 的奖项中按**剩余库存**加权选等级（一等奖自然稀缺）。
 3. **阶段三 · 原子扣减**：事务内 `UPDATE ... SET remain=remain-1 WHERE _id=? AND remain>0`，扣减失败则剔除该等级重试（最多 3 次）后降级为「谢谢参与」。
-4. **防超发 / 防重复**：库存条件更新 + 参与者 `drawn` 标记（配合唯一索引）。
+4. **防超发 / 防重复**：库存条件更新 + 参与者原子锁 + 工号维度二次校验 + 唯一索引（见部署第 5 步，**必需**）。
+
+> 工号在 `register` 时统一转大写，避免 `a10086` / `A10086` 被判成两人而绕过「一人一次」。
+> 抽奖前还会按 `empNo` 复查 `lotteryRecords`，拦截「同一工号换微信号」的情况。
 
 > ⚠️ 关键测算：25% × 155 份 ≈ **需 620 人次抽奖**才能送完全部奖品。若参与人数不足，活动结束会剩大量奖品——上线前需与业务确认预期人数与中奖率。
 
@@ -64,9 +73,13 @@
 ```bash
 cd prototype
 node server.cjs          # 启动本地静态服务，访问 http://127.0.0.1:8173 查看交互原型
-node verify_lottery.mjs  # 抽奖引擎断言：并发零超发 / 奖池耗尽中奖率仍 25% / 等级剔除 / 防重复
-node verify_data.mjs     # 数据层断言：字段一致性 / 题库导入 / 名单导出
+node verify_lottery.mjs  # 抽奖引擎断言（49）：并发零超发 / 奖池耗尽中奖率仍 25% / 等级剔除 / 防重复
+node verify_data.mjs     # 数据层断言（27）：字段一致性 / 题库导入 / 名单导出
+node stress_test.mjs     # 高并发压力测试（12）：并发去重 / 零超发 / 中奖率收敛 / 奖池耗尽
 ```
+
+`stress_test.mjs` 内置一个**云函数事务语义模拟器**（在每次 `await` 处让出事件循环以模拟真实并发交错），
+并用 `mode: 'buggy' | 'fixed'` 对照，直观复现并验证并发竞态修复是否生效。
 
 ## License
 
