@@ -1,0 +1,24 @@
+<view class="container">
+  <view class="wheel-wrap">
+    <view class="wheel {{spinning ? 'spin' : ''}}">
+      <view class="seg s1">一等奖</view>
+      <view class="seg s2">二等奖</view>
+      <view class="seg s3">三等奖</view>
+      <view class="seg s4">谢谢参与</view>
+    </view>
+    <view class="pointer"></view>
+    <view class="wheel-center" bindtap="draw">{{spinning ? '抽奖中…' : '点击抽奖'}}</view>
+  </view>
+
+  <view wx:if="{{!canDraw}}" class="card center amber">{{reason}}</view>
+
+  <view class="card" wx:if="{{pool.length}}">
+    <view class="pool-title">奖品余量</view>
+    <view class="pool-row" wx:for="{{pool}}" wx:key="level">
+      <text>{{item.name}} · {{item.desc}}</text>
+      <text class="badge {{item.remain>0 ? 'green' : 'gray'}}">剩 {{item.remain}}</text>
+    </view>
+  </view>
+
+  <button class="btn block mt24" bindtap="goHome">返回首页</button>
+</view>
