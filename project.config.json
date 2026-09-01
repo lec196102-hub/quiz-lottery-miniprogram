@@ -1,0 +1,17 @@
+{
+  "miniprogramRoot": "miniprogram/",
+  "cloudfunctionRoot": "cloudfunctions/",
+  "appid": "wxREPLACE_WITH_YOUR_APPID",
+  "projectname": "quiz-lottery",
+  "description": "答题抽奖微信小程序（微信云开发）",
+  "setting": {
+    "urlCheck": false,
+    "es6": true,
+    "enhance": true,
+    "postcss": true,
+    "minified": true,
+    "newFeature": true
+  },
+  "compileType": "miniprogram",
+  "libVersion": "latest"
+}
