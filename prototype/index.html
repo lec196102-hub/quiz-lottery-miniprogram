@@ -1,0 +1,1404 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>答题抽奖小程序 · 可交互原型</title>
+<style>
+:root{
+  --c-primary:#185FA5; --c-primary-bg:#E6F1FB;
+  --c-success:#3B6D11; --c-success-bg:#EAF3DE;
+  --c-warn:#854F0B; --c-warn-bg:#FAEEDA;
+  --c-danger:#A32D2D; --c-danger-bg:#FCEBEB;
+  --c-text:#1a1a1a; --c-text2:#5F5E5A; --c-text3:#888780;
+  --c-border:#e3e3e0; --c-bg:#f1efe8; --c-surface:#ffffff;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--c-bg);color:var(--c-text);font-size:14px;line-height:1.6}
+button{font-family:inherit;cursor:pointer;border:none;background:none;font-size:14px}
+input,select,textarea{font-family:inherit;font-size:14px}
+table{width:100%;border-collapse:collapse}
+
+/* ============ 顶栏 ============ */
+.topbar{position:sticky;top:0;z-index:100;background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar h1{font-size:15px;font-weight:600}
+.topbar .sub{font-size:12px;color:var(--c-text3)}
+.seg{display:flex;background:var(--c-bg);border-radius:8px;padding:2px}
+.seg button{padding:6px 14px;border-radius:6px;font-size:13px;color:var(--c-text2)}
+.seg button.on{background:var(--c-surface);color:var(--c-text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.spacer{flex:1}
+.btn{padding:7px 14px;border-radius:8px;font-size:13px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text)}
+.btn:hover{background:var(--c-bg)}
+.btn.primary{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.btn.primary:hover{background:#124d87}
+.btn.on{background:var(--c-primary-bg);border-color:var(--c-primary);color:var(--c-primary)}
+.pages-nav{display:flex;gap:4px;flex-wrap:wrap}
+.pages-nav button{padding:5px 10px;border-radius:6px;font-size:12px;color:var(--c-text2);border:1px solid transparent}
+.pages-nav button:hover{background:var(--c-bg)}
+.pages-nav button.on{background:var(--c-primary-bg);color:var(--c-primary);border-color:var(--c-primary)}
+
+/* ============ 舞台 ============ */
+.stage{display:flex;gap:24px;padding:24px 20px 40px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.phone{width:390px;background:#1a1a1a;border-radius:44px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.18);flex-shrink:0}
+.phone-screen{width:366px;height:760px;background:#f7f8fa;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.statusbar{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;color:#1a1a1a;flex-shrink:0;background:#f7f8fa}
+.navbar{height:44px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--c-surface);border-bottom:1px solid var(--c-border);flex-shrink:0}
+.navbar .back{position:absolute;left:12px;font-size:20px;color:var(--c-text);line-height:1}
+.navbar .title{font-size:16px;font-weight:500}
+.page-body{flex:1;overflow-y:auto;padding:16px}
+.page-body::-webkit-scrollbar{width:4px}
+.page-body::-webkit-scrollbar-thumb{background:#d0d0cc;border-radius:2px}
+.tabbar{height:56px;background:var(--c-surface);border-top:1px solid var(--c-border);display:flex;flex-shrink:0}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--c-text3)}
+.tabbar button.on{color:var(--c-primary)}
+.tabbar .dot{width:18px;height:18px;border-radius:5px;background:currentColor;opacity:.5;margin-bottom:1px}
+
+/* ============ 后台 ============ */
+.pc{width:1180px;max-width:100%;background:var(--c-surface);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06);flex-shrink:0}
+.pc.slim{width:420px}
+.admin-layout{display:flex;min-height:700px}
+.admin-side{width:180px;background:#2C2C2A;color:#D3D1C7;padding:16px 0;flex-shrink:0;display:flex;flex-direction:column}
+.admin-side .logo{padding:0 16px 16px;font-size:14px;font-weight:600;color:#fff;border-bottom:1px solid #444441;margin-bottom:8px}
+.admin-side a{display:block;padding:10px 16px;color:#B4B2A9;font-size:13px;text-decoration:none}
+.admin-side a:hover{background:#3a3a37;color:#fff}
+.admin-side a.on{background:var(--c-primary);color:#fff}
+.admin-main{flex:1;padding:20px;overflow-y:auto;max-height:700px;background:#fafaf9}
+.admin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.admin-head h2{font-size:16px;font-weight:600}
+
+/* ============ 通用组件 ============ */
+.card{background:var(--c-surface);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--c-border)}
+.card.flat{border:none;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.muted{color:var(--c-text2)}
+.tiny{font-size:12px}
+.center{text-align:center}
+.row{display:flex;align-items:center;gap:8px}
+.row.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.gap12{gap:12px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt24{margin-top:24px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--c-text2);margin-bottom:6px}
+.field input{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:8px;background:var(--c-surface)}
+.field input:focus{outline:none;border-color:var(--c-primary)}
+.field .err{color:var(--c-danger);font-size:12px;margin-top:4px;display:none}
+.field.invalid input{border-color:var(--c-danger)}
+.field.invalid .err{display:block}
+
+.btn-block{width:100%;padding:13px;border-radius:10px;font-size:15px;font-weight:500}
+.btn-lg{padding:12px 20px;border-radius:10px;font-size:15px}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;line-height:1.7}
+.badge.blue{background:var(--c-primary-bg);color:var(--c-primary)}
+.badge.green{background:var(--c-success-bg);color:var(--c-success)}
+.badge.amber{background:var(--c-warn-bg);color:var(--c-warn)}
+.badge.red{background:var(--c-danger-bg);color:var(--c-danger)}
+.badge.gray{background:#F1EFE8;color:var(--c-text2)}
+
+/* 四态 */
+.empty{padding:48px 20px;text-align:center;color:var(--c-text3)}
+.empty .icon{width:56px;height:56px;border-radius:16px;background:#F1EFE8;margin:0 auto 12px}
+.empty .t{font-size:14px;color:var(--c-text2);margin-bottom:4px}
+.empty .d{font-size:12px;margin-bottom:16px}
+.skel{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:6px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:10px}
+.skel-box{height:80px;margin-bottom:12px}
+.loading-mask{position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;gap:12px}
+.spinner{width:36px;height:36px;border:3px solid #e3e3e0;border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.form-error{background:var(--c-danger-bg);border:1px solid #F7C1C1;color:var(--c-danger);padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px}
+
+/* 题目 */
+.q-progress{display:flex;gap:4px;margin-bottom:16px}
+.q-progress i{flex:1;height:4px;border-radius:2px;background:#e3e3e0}
+.q-progress i.done{background:var(--c-primary)}
+.q-progress i.cur{background:var(--c-primary)}
+.q-title{font-size:16px;line-height:1.6;margin-bottom:4px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid var(--c-border);border-radius:10px;margin-bottom:10px;background:var(--c-surface);text-align:left;width:100%}
+.opt:active{background:#f5f5f5}
+.opt.sel{border-color:var(--c-primary);background:var(--c-primary-bg)}
+.opt .k{width:24px;height:24px;border-radius:50%;border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:#fff}
+.opt.sel .k{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.opt.correct{border-color:var(--c-success);background:var(--c-success-bg)}
+.opt.wrong{border-color:var(--c-danger);background:var(--c-danger-bg)}
+
+/* 抽奖转盘 */
+.wheel-wrap{position:relative;width:260px;height:260px;margin:20px auto}
+.wheel{width:100%;height:100%;border-radius:50%;border:8px solid #fff;box-shadow:0 4px 20px rgba(0,0,0,.12);position:relative;overflow:hidden}
+.wheel.spin{transition:transform 4s cubic-bezier(.15,.85,.35,1)}
+.wheel-item{position:absolute;left:50%;top:50%;width:50%;height:0;transform-origin:0 0}
+.wheel-item span{position:absolute;left:64px;top:-9px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pointer{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:var(--c-surface);border:4px solid var(--c-primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--c-primary);z-index:5;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+
+/* 结果弹层 */
+.result-pop{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:24px}
+.result-card{background:var(--c-surface);border-radius:20px;padding:28px 24px;text-align:center;width:100%}
+.prize-icon{width:72px;height:72px;border-radius:20px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.level-1{background:#FAEEDA}.level-2{background:#E6F1FB}.level-3{background:#EAF3DE}.level-0{background:#F1EFE8}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#2C2C2A;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.ok{background:var(--c-success)}
+.toast.err{background:var(--c-danger)}
+
+/* 后台表格 */
+.tbl{font-size:13px}
+.tbl th{background:#fafaf9;text-align:left;padding:10px 12px;color:var(--c-text2);font-weight:500;border-bottom:1px solid var(--c-border);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f0f0ee;vertical-align:middle}
+.tbl tr:hover td{background:#fafaf9}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#fafaf9;border:1px solid var(--c-border);border-radius:10px;padding:14px}
+.stat .n{font-size:22px;font-weight:600;line-height:1.2}
+.stat .l{font-size:12px;color:var(--c-text2);margin-top:2px}
+.bar{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--c-primary);border-radius:4px}
+
+/* 弹窗 */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal-box{background:var(--c-surface);border-radius:12px;width:520px;max-width:92vw;max-height:84vh;overflow:auto}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:15px;font-weight:600}
+.modal-body{padding:20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--c-border);display:flex;justify-content:flex-end;gap:8px}
+.drop{border:2px dashed var(--c-border);border-radius:10px;padding:28px;text-align:center;color:var(--c-text3);cursor:pointer}
+.drop:hover{border-color:var(--c-primary);background:var(--c-primary-bg)}
+.switch{width:40px;height:22px;border-radius:11px;background:#d0d0cc;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.switch.on{background:var(--c-primary)}
+.switch i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on i{left:20px}
+
+/* 标注面板 */
+.anno{width:320px;flex-shrink:0}
+.anno-box{background:var(--c-surface);border-radius:var(--radius);padding:16px;border:1px solid var(--c-border);margin-bottom:12px}
+.anno-box h4{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--c-text);display:flex;align-items:center;gap:6px}
+.anno-box h4::before{content:'';width:3px;height:13px;background:var(--c-primary);border-radius:2px}
+.anno-kv{display:flex;gap:8px;font-size:12px;margin-bottom:6px}
+.anno-kv b{color:var(--c-text2);font-weight:400;flex-shrink:0;width:52px}
+.anno-kv span{color:var(--c-text);flex:1}
+.anno ul{list-style:none;font-size:12px}
+.anno ul li{padding:5px 0 5px 12px;position:relative;color:var(--c-text2);border-bottom:1px dashed #f0f0ee}
+.anno ul li:last-child{border-bottom:none}
+.anno ul li::before{content:'';position:absolute;left:0;top:12px;width:4px;height:4px;border-radius:50%;background:var(--c-primary)}
+.anno ul li b{color:var(--c-text);font-weight:500}
+
+/* 调试面板 */
+.debug{width:320px;flex-shrink:0}
+.debug-box{background:#2C2C2A;color:#D3D1C7;border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.debug-box h4{font-size:12px;color:#fff;margin-bottom:10px;letter-spacing:.5px}
+.debug-box button{display:block;width:100%;text-align:left;padding:7px 10px;border-radius:6px;font-size:12px;color:#D3D1C7;margin-bottom:4px;background:#3a3a37}
+.debug-box button:hover{background:#4a4a47;color:#fff}
+.debug-box button.act{background:var(--c-danger);color:#fff}
+.debug-box .hint{font-size:11px;color:#888780;line-height:1.5;margin-top:8px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>答题抽奖小程序 · 可交互原型</h1>
+    <div class="sub">低保真线框实现 · 覆盖 12 个页面与空/加载/报错/成功四态</div>
+  </div>
+  <div class="seg" id="segClient">
+    <button data-side="c" data-action="switch-side" class="on">参与者端（小程序）</button>
+    <button data-side="a" data-action="switch-side">管理后台（PC）</button>
+  </div>
+  <div class="pages-nav" id="pageNav"></div>
+  <div class="spacer"></div>
+  <button class="btn" id="btnAnno">设计标注</button>
+  <button class="btn" id="btnDebug">测试面板</button>
+</header>
+
+<div class="stage">
+  <div id="viewport"></div>
+  <div id="sidePanels" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<h2 class="sr-only">答题抽奖小程序可交互原型，包含参与者端 7 个页面与管理后台 5 个页面</h2>
+
+<script type="module">
+import Data, { BizError, TEST_UTILS } from './data.js';
+
+/* ============================================================
+ * 0. 全局状态
+ * ==========================================================*/
+const state = {
+  side: 'c',           // c=参与者端 a=管理后台
+  route: 'home',
+  annoOpen: false,
+  debugOpen: false,
+  me: null,            // 当前登记身份
+  quiz: null,          // 当前答题会话 {questions, index, answers, result}
+  lottery: null,       // 抽奖结果
+  admin: null,
+  forceError: false    // 调试：强制下次请求失败
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function toast(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => (t.className = 'toast ' + type), 2200);
+}
+
+/** 统一请求包装：注入加载态与调试用的强制报错 */
+async function call(fn, { loading = null, silent = false } = {}) {
+  const setLoading = (text) => {
+    const mask = $('#loadingMask');
+    if (!mask) return;
+    mask.style.display = 'flex';
+    mask.querySelector('.loading-text').textContent = text;
+  };
+  try {
+    if (loading) setLoading(loading);
+    if (state.forceError) {
+      state.forceError = false;
+      await new Promise((r) => setTimeout(r, 600));
+      throw new BizError('网络连接超时，请检查网络后重试', 'NETWORK');
+    }
+    return await fn();
+  } catch (e) {
+    if (e instanceof BizError) {
+      if (!silent) toast(e.message, 'err');
+    } else {
+      if (!silent) toast('请求失败：' + e.message, 'err');
+    }
+    throw e;
+  } finally {
+    const mask = $('#loadingMask');
+    if (mask) mask.style.display = 'none';
+  }
+}
+
+/* ============================================================
+ * 1. 页面清单（页面层级 / 端 / 名称）
+ * ==========================================================*/
+const PAGES = [
+  { route: 'home',            side: 'c', layer: 'L1', name: '活动首页',   nav: true },
+  { route: 'register',        side: 'c', layer: 'L2', name: '身份登记',   nav: true },
+  { route: 'quiz',            side: 'c', layer: 'L2', name: '答题页',     nav: true },
+  { route: 'quiz-result',     side: 'c', layer: 'L3', name: '答题结果',   nav: true },
+  { route: 'lottery',         side: 'c', layer: 'L3', name: '抽奖页',     nav: true },
+  { route: 'lottery-result',  side: 'c', layer: 'L4', name: '抽奖结果',   nav: true },
+  { route: 'my-prize',        side: 'c', layer: 'L2', name: '我的奖品',   nav: true },
+  { route: 'admin-login',     side: 'a', layer: 'A1', name: '后台登录',   nav: true },
+  { route: 'admin-dashboard', side: 'a', layer: 'A2', name: '数据看板',   nav: true },
+  { route: 'admin-questions', side: 'a', layer: 'A3', name: '题库管理',   nav: true },
+  { route: 'admin-prizes',    side: 'a', layer: 'A4', name: '奖品配置',   nav: true },
+  { route: 'admin-winners',   side: 'a', layer: 'A5', name: '获奖名单',   nav: true }
+];
+
+/** 页面设计标注：与线框图文档一一对应 */
+const ANNO = {
+  home: {
+    entry: '扫码 / 分享链接（携带 activityId）',
+    jump: '「立即参与」→ 身份登记（未登记）或 答题页（已登记）',
+    states: '活动未开始 / 已结束 / 进行中',
+    comps: [
+      ['活动卡组件', '活动名称、起止时间、说明文案'],
+      ['规则卡组件', '题量、通关阈值、奖项与中奖概率'],
+      ['主按钮', '立即参与，点击后按登记状态分流'],
+      ['底部 Tab', '首页 / 我的奖品']
+    ]
+  },
+  register: {
+    entry: '首页「立即参与」，或答题页未登记时重定向',
+    jump: '提交成功 → 答题页；已登记同身份 → 静默复用',
+    states: '校验失败（姓名/工号）、同工号不同姓名告警、提交中',
+    comps: [
+      ['表单字段', '姓名（2–10 字）、工号（4–12 位字母数字）'],
+      ['行内校验', '失焦即校验，错误红框 + 下方提示'],
+      ['告警条', '同工号不同姓名时黄色提示，不阻断提交'],
+      ['提交按钮', '加载中禁用，防重复提交']
+    ]
+  },
+  quiz: {
+    entry: '登记成功 / 结果页「再答一次」',
+    jump: '答完 5 题交卷 → 答题结果页',
+    states: '抽题加载中、作答中、交卷加载中',
+    comps: [
+      ['进度条', '5 段，已答/当前/未答三态'],
+      ['题卡', '题干 + 4 个单选选项，选中高亮'],
+      ['导航按钮', '上一题 / 下一题 / 交卷'],
+      ['安全说明', '本页数据不含正确答案，判分在服务端']
+    ]
+  },
+  'quiz-result': {
+    entry: '答题页交卷',
+    jump: '通关 → 抽奖页；未通关 → 重新答题',
+    states: '通关成功（绿）、未通关（橙）、可查看解析',
+    comps: [
+      ['成绩卡', '答对题数 / 总数 / 通关阈值'],
+      ['状态徽章', '通关或未达标'],
+      ['解析列表', '逐题展示你的答案、正确答案与解析'],
+      ['分流按钮', '通关去抽奖，未通关再答一次']
+    ]
+  },
+  lottery: {
+    entry: '答题结果页「去抽奖」',
+    jump: '抽奖完成 → 抽奖结果页',
+    states: '加载中（转盘旋转）、奖池已空、无资格',
+    comps: [
+      ['转盘组件', '对应 lucky-canvas，中奖索引由服务端返回'],
+      ['抽奖按钮', '点击后禁用，避免重复提交'],
+      ['奖池余量', '实时显示各奖项剩余'],
+      ['规则说明', '每人仅可抽奖一次']
+    ]
+  },
+  'lottery-result': {
+    entry: '抽奖页抽奖完成',
+    jump: '中奖 → 我的奖品；未中奖 → 返回首页',
+    states: '一等奖/二等奖/三等奖/谢谢参与',
+    comps: [
+      ['结果卡', '奖项等级配色区分：一 amber、二 blue、三 green、未中 gray'],
+      ['奖品信息', '奖品名称与兑奖说明'],
+      ['二次抽奖', '再次进入时提示「每人仅可参与一次抽奖」'],
+      ['操作按钮', '查看我的奖品 / 返回首页']
+    ]
+  },
+  'my-prize': {
+    entry: '底部 Tab「我的奖品」/ 抽奖结果页',
+    jump: '无更多跳转',
+    states: '已中奖、未中奖（空态）、未参与（空态）',
+    comps: [
+      ['身份卡', '姓名与工号'],
+      ['奖品卡', '奖项、奖品、中奖时间、兑奖地点'],
+      ['空状态', '未中奖或未参与时的插画与引导']
+    ]
+  },
+  'admin-login': {
+    entry: '后台域名直接访问',
+    jump: '登录成功 → 数据看板',
+    states: '账号密码错误、加载中',
+    comps: [['账号输入', '用户名'], ['密码输入', '密码（掩码）'], ['登录按钮', '加载中禁用']]
+  },
+  'admin-dashboard': {
+    entry: '登录成功 / 侧边栏',
+    jump: '侧边栏切至题库、奖品、名单',
+    states: '加载中、无数据',
+    comps: [
+      ['统计卡组', '参与人数、答题人次、通关数、抽奖数、中奖数'],
+      ['奖池进度', '各奖项已发/总量进度条'],
+      ['中奖率卡', '实际中奖率与配置值对比']
+    ]
+  },
+  'admin-questions': {
+    entry: '侧边栏「题库管理」',
+    jump: '导入弹窗、上下页、启用停用',
+    states: '空状态（无题目）、加载中、导入成功/部分失败',
+    comps: [
+      ['搜索栏', '按题干或题号检索'],
+      ['导入按钮', '打开 Excel 导入弹窗'],
+      ['题目表格', '题号/题干/分类/答案/状态/操作'],
+      ['分页器', '每页 10 条'],
+      ['导入结果', '成功 N 条 / 失败 M 条 + 错误行下载']
+    ]
+  },
+  'admin-prizes': {
+    entry: '侧边栏「奖品配置」',
+    jump: '无',
+    states: '保存成功、库存为 0 的告警',
+    comps: [
+      ['奖项卡', '等级、名称、总量、剩余、权重'],
+      ['库存进度', '剩余/总量条形图，归零标红'],
+      ['策略配置', '中奖概率、权重模式、奖池耗尽行为']
+    ]
+  },
+  'admin-winners': {
+    entry: '侧边栏「获奖名单」',
+    jump: '无',
+    states: '空状态（无人中奖）、加载中',
+    comps: [
+      ['筛选栏', '关键词、奖项等级'],
+      ['名单表格', '姓名/工号/奖项/奖品/中奖时间'],
+      ['导出按钮', '导出 CSV'],
+      ['统计行', '中奖人数与实际中奖率']
+    ]
+  }
+};
+
+/* ============================================================
+ * 2. 通用 UI 片段
+ * ==========================================================*/
+const skeleton = (n = 3) =>
+  `<div class="skel skel-box"></div>` + Array.from({ length: n }, (_, i) => `<div class="skel skel-line" style="width:${90 - i * 12}%"></div>`).join('');
+
+/** 空状态组件。btn = { action, route, label } */
+const emptyState = (title, desc, btn) => `
+  <div class="empty">
+    <div class="icon"></div>
+    <div class="t">${esc(title)}</div>
+    <div class="d">${esc(desc)}</div>
+    ${btn ? `<button class="btn primary" data-action="${btn.action}"${btn.route ? ` data-route="${btn.route}"` : ''}>${esc(btn.label)}</button>` : ''}
+  </div>`;
+
+const loadingMask = () => `<div class="loading-mask" id="loadingMask" style="display:none"><div class="spinner"></div><div class="loading-text tiny muted"></div></div>`;
+
+/* ============================================================
+ * 3. 参与者端页面
+ * ==========================================================*/
+
+async function pageHome() {
+  const act = await Data.getActivity();
+  const stats = await Data.getStats();
+  const closed = act.status !== 'open';
+  return {
+    navbar: '活动首页',
+    body: `
+      <div class="card" style="background:linear-gradient(160deg,#185FA5,#0C447C);color:#fff;border:none">
+        <div style="font-size:20px;font-weight:600;margin-bottom:8px">${esc(act.name)}</div>
+        <div class="tiny" style="opacity:.85">${esc(act.startAt)} 至 ${esc(act.endAt)}</div>
+      </div>
+      <div class="card">
+        <div class="tiny muted mb8">活动说明</div>
+        <div class="tiny">${esc(act.description)}</div>
+      </div>
+      <div class="card">
+        <div class="tiny muted mb12">奖项设置</div>
+        ${stats.prizes.map((p) => `
+          <div class="row between mb8">
+            <div class="row gap12"><span class="badge ${p.level === 1 ? 'amber' : p.level === 2 ? 'blue' : 'green'}">${esc(p.name)}</span>
+            <span class="tiny muted">${esc(p.desc)}</span></div>
+            <span class="tiny">${p.remain}/${p.total}</span>
+          </div>`).join('')}
+        <div class="tiny muted mt8">总中奖概率 ${(act.winRate * 100).toFixed(0)}%，每人仅可抽奖一次</div>
+      </div>
+      ${closed ? `<div class="form-error">活动${act.status === 'draft' ? '尚未开始' : '已结束'}，感谢关注</div>` : ''}
+      <button class="btn primary btn-block" data-action="go-register" ${closed ? 'disabled style="opacity:.5"' : ''}>立即参与</button>
+      <div class="tiny muted center mt12">已参与 ${stats.participants} 人 · 已抽奖 ${stats.drawn} 人</div>
+    `,
+    tabbar: true
+  };
+}
+
+function pageRegister(prefill = {}, error = '') {
+  return {
+    navbar: '身份登记',
+    back: 'home',
+    body: `
+      <div class="card">
+        <div class="tiny muted mb12">请先登记身份信息，用于奖品核销。同一工号仅可抽奖一次。</div>
+        ${error ? `<div class="form-error">${esc(error)}</div>` : ''}
+        <div class="field" id="f-name">
+          <label>姓名</label>
+          <input id="ipt-name" placeholder="请输入真实姓名（2–10 字）" value="${esc(prefill.name || '')}">
+          <div class="err">姓名长度应为 2–10 个字符</div>
+        </div>
+        <div class="field" id="f-emp">
+          <label>工号</label>
+          <input id="ipt-emp" placeholder="请输入工号（4–12 位字母或数字）" value="${esc(prefill.empNo || '')}">
+          <div class="err">工号应为 4–12 位字母或数字</div>
+        </div>
+        <button class="btn primary btn-block" data-action="submit-register">开始答题</button>
+        <div class="tiny muted center mt12">信息仅用于本次活动核销，活动结束后可申请删除</div>
+      </div>
+      <div class="card flat">
+        <div class="tiny muted mb8">测试账号（点击直接填入）</div>
+        <div class="row wrap gap12">
+          <button class="btn" data-action="fill-demo" data-name="张伟" data-emp="A10086">张伟 / A10086（已抽过）</button>
+          <button class="btn" data-action="fill-demo" data-name="李静" data-emp="A10087">李静 / A10087（未抽）</button>
+        </div>
+      </div>`
+  };
+}
+
+async function pageQuiz() {
+  if (!state.me) return pageRegister({}, '请先登记身份信息后再开始答题');
+  try {
+    const qs = await call(() => Data.drawQuestions(), { loading: '正在抽题…' });
+    state.quiz = { questions: qs, index: 0, answers: new Array(qs.length).fill(null) };
+    return renderQuiz();
+  } catch {
+    return {
+      navbar: '答题',
+      back: 'home',
+      body: `<div class="card">${skeleton(3)}</div>
+        <div class="form-error">题目加载失败，请检查网络后重试</div>
+        <button class="btn primary btn-block" data-action="goto" data-route="quiz">重新加载</button>`
+    };
+  }
+}
+
+function renderQuiz() {
+  const q = state.quiz;
+  const item = q.questions[q.index];
+  return {
+    navbar: `答题 ${q.index + 1}/${q.questions.length}`,
+    back: 'home',
+    body: `
+      <div class="q-progress">${q.questions.map((_, i) => `<i class="${i < q.index ? 'done' : i === q.index ? 'cur' : ''}"></i>`).join('')}</div>
+      <div class="card">
+        <div class="row between mb12"><span class="badge gray">${esc(item.category)}</span><span class="tiny muted">第 ${item.no} 题</span></div>
+        <div class="q-title">${esc(item.title)}</div>
+      </div>
+      ${['A', 'B', 'C', 'D'].map((k) => `
+        <button class="opt ${q.answers[q.index] === k ? 'sel' : ''}" data-action="pick" data-key="${k}">
+          <span class="k">${k}</span><span>${esc(item.options[k])}</span>
+        </button>`).join('')}
+      <div class="row gap12 mt16">
+        <button class="btn" style="flex:1;${q.index === 0 ? 'opacity:.4' : ''}" data-action="prev-q" ${q.index === 0 ? 'disabled' : ''}>上一题</button>
+        ${q.index < q.questions.length - 1
+          ? `<button class="btn primary" style="flex:1" data-action="next-q">下一题</button>`
+          : `<button class="btn primary" style="flex:1" data-action="submit-quiz">交卷</button>`}
+      </div>
+      <div class="tiny muted center mt12">本页不包含正确答案，判分在服务端完成</div>`
+  };
+}
+
+function pageQuizResult() {
+  const r = state.quiz.result;
+  if (!r) return { navbar: '答题结果', back: 'home', body: emptyState('暂无答题记录', '先完成一次答题吧', { action: 'go-register', label: '去登记' }) };
+  return {
+    navbar: '答题结果',
+    back: 'home',
+    body: `
+      <div class="card center" style="background:${r.passed ? 'var(--c-success-bg)' : 'var(--c-warn-bg)'};border:none">
+        <div style="font-size:32px;font-weight:600;color:${r.passed ? 'var(--c-success)' : 'var(--c-warn)'}">${r.correctCount} / ${r.total}</div>
+        <div class="tiny" style="color:${r.passed ? 'var(--c-success)' : 'var(--c-warn)'}">${r.passed ? '恭喜通关，获得抽奖资格' : `答对 ${r.passScore} 题即可通关`}</div>
+      </div>
+      ${r.passed
+        ? `<button class="btn primary btn-block" data-action="goto" data-route="lottery">去抽奖</button>`
+        : `<button class="btn primary btn-block" data-action="re-quiz">再答一次</button>`}
+      <div class="card mt16">
+        <div class="tiny muted mb12">答案解析</div>
+        ${r.details.map((d, i) => `
+          <div class="mb12" style="padding-bottom:12px;border-bottom:1px solid var(--c-border)">
+            <div class="row gap12 mb8"><span class="badge ${d.correct ? 'green' : 'red'}">${d.correct ? '答对' : '答错'}</span><span class="tiny muted">第 ${i + 1} 题</span></div>
+            <div class="tiny mb8">${esc(d.title)}</div>
+            ${['A', 'B', 'C', 'D'].map((k) => `
+              <div class="tiny" style="padding:5px 10px;border-radius:6px;margin-bottom:4px;background:${k === d.correctAnswer ? 'var(--c-success-bg)' : k === d.yourAnswer && !d.correct ? 'var(--c-danger-bg)' : '#fafaf9'}">
+                ${k}. ${esc(d.options[k])}${k === d.correctAnswer ? ' ✓' : ''}${k === d.yourAnswer && !d.correct ? ' ✗' : ''}
+              </div>`).join('')}
+            <div class="tiny muted mt8">解析：${esc(d.analysis)}</div>
+          </div>`).join('')}
+      </div>`
+  };
+}
+
+async function pageLottery() {
+  if (!state.me) return pageRegister({}, '请先登记身份信息');
+  const elig = await Data.getEligibility();
+  const stats = await Data.getStats();
+  const poolEmpty = stats.prizeRemain === 0;
+
+  if (!elig.passed) {
+    return { navbar: '抽奖', back: 'home', body: emptyState('尚未获得抽奖资格', '答对 3 题通关后即可参与抽奖', { action: 'goto', route: 'quiz', label: '去答题' }) };
+  }
+  if (elig.drawn) {
+    return {
+      navbar: '抽奖',
+      back: 'home',
+      body: `<div class="card center"><div class="prize-icon level-0" style="margin-bottom:8px"></div>
+        <div style="font-size:16px;font-weight:500">每人仅可参与一次抽奖</div>
+        <div class="tiny muted mt8">你已于 ${esc(state.me.drawnAt || '-')} 完成抽奖</div>
+        <button class="btn primary btn-block mt16" data-action="goto" data-route="my-prize">查看我的奖品</button></div>`
+    };
+  }
+
+  // 扇区须与抽奖算法结局一一对应（中奖 1/2/3 等 或 未中），避免误导评审
+  const segs = [
+    { name: '一等奖', color: '#BA7517' },
+    { name: '二等奖', color: '#378ADD' },
+    { name: '三等奖', color: '#639922' },
+    { name: '谢谢参与', color: '#B4B2A9' }
+  ];
+  const n = segs.length;
+  return {
+    navbar: '抽奖',
+    back: 'home',
+    body: `
+      <div class="card center">
+        <div class="tiny muted mb8">通关达成，获得 1 次抽奖机会</div>
+        <div class="wheel-wrap">
+          <div class="wheel" id="wheel" style="background:conic-gradient(${segs.map((s, i) => `${s.color} ${(i * 360) / n}deg ${((i + 1) * 360) / n}deg`).join(',')})">
+            ${segs.map((s, i) => `<div class="wheel-item" style="transform:rotate(${(i * 360) / n + 180 / n - 90}deg)"><span>${esc(s.name)}</span></div>`).join('')}
+          </div>
+          <div class="pointer">抽奖</div>
+        </div>
+        ${poolEmpty
+          ? `<div class="form-error">奖品已全部送出，感谢参与！</div>`
+          : `<button class="btn primary btn-block" data-action="do-draw">开始抽奖</button>`}
+      </div>
+      <div class="card">
+        <div class="tiny muted mb8">奖品池余量</div>
+        ${stats.prizes.map((p) => `<div class="row between mb8"><span class="tiny">${esc(p.name)}</span><span class="tiny">${p.remain} / ${p.total}</span></div>`).join('')}
+      </div>
+      <div class="tiny muted center">总中奖概率 25%，每人仅可抽奖一次</div>`
+  };
+}
+
+function pageLotteryResult() {
+  const r = state.lottery;
+  if (!r) return { navbar: '抽奖结果', back: 'home', body: emptyState('暂无抽奖记录', '通关后即可参与抽奖', { action: 'goto', route: 'quiz', label: '去答题' }) };
+  const cls = `level-${r.level || 0}`;
+  const label = r.level ? `${r.level} 等奖` : '谢谢参与';
+  return {
+    navbar: '抽奖结果',
+    back: 'home',
+    body: `
+      <div class="result-card" style="box-shadow:0 4px 20px rgba(0,0,0,.06);border:1px solid var(--c-border)">
+        <div class="prize-icon ${cls}"></div>
+        <div style="font-size:20px;font-weight:600">${esc(r.message)}</div>
+        ${r.prizeName ? `<div class="tiny muted mt8">${esc(r.prizeName)}</div>` : `<div class="tiny muted mt8">再接再厉，感谢参与本次活动</div>`}
+        <div class="tiny muted mt16">中奖时间 ${esc(new Date().toLocaleString('zh-CN'))}</div>
+      </div>
+      <div class="row gap12 mt16">
+        <button class="btn" style="flex:1" data-action="goto" data-route="home">返回首页</button>
+        <button class="btn primary" style="flex:1" data-action="goto" data-route="my-prize">我的奖品</button>
+      </div>
+      <div class="card mt16"><div class="tiny muted">请凭姓名与工号到指定地点现场核销领取，名单以后台记录为准。</div></div>`
+  };
+}
+
+async function pageMyPrize() {
+  const my = await Data.getMyResult();
+  if (!my || !my.participant) {
+    return { navbar: '我的奖品', body: emptyState('尚未参与活动', '登记身份后即可开始答题', { action: 'go-register', label: '去登记' }) };
+  }
+  const p = my.participant;
+  const r = my.record;
+  const won = r && r.level;
+  return {
+    navbar: '我的奖品',
+    body: `
+      <div class="card">
+        <div class="row between">
+          <div><div style="font-weight:500">${esc(p.name)}</div><div class="tiny muted">工号 ${esc(p.empNo)}</div></div>
+          <span class="badge ${p.drawn ? 'green' : 'gray'}">${p.drawn ? '已抽奖' : '未抽奖'}</span>
+        </div>
+      </div>
+      ${won
+        ? `<div class="card" style="border-color:var(--c-success)">
+            <div class="row between mb8"><span class="badge ${r.level === 1 ? 'amber' : r.level === 2 ? 'blue' : 'green'}">${r.level} 等奖</span><span class="tiny muted">${esc(r.wonAt)}</span></div>
+            <div style="font-size:16px;font-weight:500">${esc(r.prizeName)}</div>
+            <div class="tiny muted mt8">请凭本人姓名与工号到 1 号楼 1 层前台核销领取</div>
+          </div>`
+        : `<div class="card">${emptyState(r ? '本次未中奖' : '尚未抽奖', r ? '感谢参与本次活动' : '答对 3 题通关后即可参与抽奖', r ? null : { action: 'goto', route: 'quiz', label: '去答题' })}</div>`}
+      <button class="btn btn-block" data-action="reset-me">退出当前身份（重新测试）</button>`
+  };
+}
+
+/* ============================================================
+ * 4. 渲染调度
+ * ==========================================================*/
+const RENDERERS = {
+  home: pageHome,
+  register: () => pageRegister(),
+  // 已有进行中的答题会话则直接渲染，避免选答案时重新抽题
+  quiz: () => (state.quiz && !state.quiz.result ? renderQuiz() : pageQuiz()),
+  'quiz-result': pageQuizResult,
+  lottery: pageLottery,
+  'lottery-result': pageLotteryResult,
+  'my-prize': pageMyPrize
+};
+
+async function render() {
+  const vp = $('#viewport');
+  const page = PAGES.find((p) => p.route === state.route);
+  if (page) state.side = page.side;
+
+  if (state.side === 'c') {
+    let out;
+    try {
+      out = await RENDERERS[state.route]();
+    } catch (e) {
+      out = { navbar: '出错了', body: `<div class="card">${skeleton()}</div><div class="form-error">${esc(e.message)}</div>` };
+    }
+    vp.innerHTML = `
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>5G &nbsp;100%</span></div>
+          ${out.navbar ? `<div class="navbar">${out.back ? `<button class="back" data-action="goto" data-route="${out.back}">‹</button>` : ''}<div class="title">${esc(out.navbar)}</div></div>` : ''}
+          <div class="page-body">${out.body}</div>
+          ${out.tabbar ? `<div class="tabbar">
+            <button class="${state.route === 'home' ? 'on' : ''}" data-action="goto" data-route="home"><span class="dot"></span>首页</button>
+            <button class="${state.route === 'my-prize' ? 'on' : ''}" data-action="goto" data-route="my-prize"><span class="dot"></span>我的奖品</button>
+          </div>` : ''}
+          ${loadingMask()}
+        </div>
+      </div>`;
+  } else {
+    vp.innerHTML = await renderAdmin();
+  }
+
+  renderNav();
+  renderSidePanels();
+}
+
+function renderNav() {
+  const list = PAGES.filter((p) => p.side === state.side && p.nav);
+  $('#pageNav').innerHTML = list
+    .map((p) => `<button class="${p.route === state.route ? 'on' : ''}" data-action="goto" data-route="${p.route}">${p.layer} ${esc(p.name)}</button>`)
+    .join('');
+  document.querySelectorAll('#segClient button').forEach((b) => b.classList.toggle('on', b.dataset.side === state.side));
+}
+
+function renderSidePanels() {
+  const box = $('#sidePanels');
+  let html = '';
+
+  if (state.annoOpen) {
+    const a = ANNO[state.route] || {};
+    const page = PAGES.find((p) => p.route === state.route) || {};
+    html += `<div class="anno">
+      <div class="anno-box">
+        <h4>页面信息</h4>
+        <div class="anno-kv"><b>页面</b><span>${esc(page.name || '-')}（${esc(page.layer || '-')}）</span></div>
+        <div class="anno-kv"><b>路由</b><span>#/${esc(state.route)}</span></div>
+        <div class="anno-kv"><b>入口</b><span>${esc(a.entry || '-')}</span></div>
+        <div class="anno-kv"><b>跳转</b><span>${esc(a.jump || '-')}</span></div>
+        <div class="anno-kv"><b>状态</b><span>${esc(a.states || '-')}</span></div>
+      </div>
+      <div class="anno-box">
+        <h4>关键组件</h4>
+        <ul>${(a.comps || []).map(([k, v]) => `<li><b>${esc(k)}</b> — ${esc(v)}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+  }
+
+  if (state.debugOpen) {
+    html += `<div class="debug">
+      <div class="debug-box">
+        <h4>状态模拟（验证四态）</h4>
+        <button data-action="dbg-force-error">▸ 强制下次请求失败（报错态）</button>
+        <button data-action="dbg-clear-questions">▸ 清空题库（空状态）</button>
+        <button data-action="dbg-clear-winners">▸ 清空中奖名单（空状态）</button>
+        <button data-action="dbg-see-skeleton">▸ 查看骨架屏（加载态）</button>
+        <div class="hint">点击后到对应页面查看效果</div>
+      </div>
+      <div class="debug-box">
+        <h4>抽奖算法验证</h4>
+        <button data-action="dbg-drain-1">▸ 一等奖清零（验证等级剔除）</button>
+        <button data-action="dbg-drain-all">▸ 全部奖品清零（验证奖池耗尽）</button>
+        <button data-action="dbg-sim">▸ 模拟 2000 次抽奖并输出统计</button>
+        <div class="hint" id="dbgOut">结果输出在此</div>
+      </div>
+      <div class="debug-box">
+        <h4>数据</h4>
+        <button data-action="dbg-reset">▸ 重置全部数据</button>
+        <button data-action="dbg-seed">▸ 生成已通关未抽奖的测试身份</button>
+        <div class="hint">对应 verify_lottery.mjs 中的用例场景</div>
+      </div>
+    </div>`;
+  }
+
+  box.innerHTML = html;
+}
+
+/* ============================================================
+ * 5. 路由
+ * ==========================================================*/
+function goto(route) {
+  state.route = route;
+  location.hash = '#/' + route;
+  render();
+}
+
+window.addEventListener('hashchange', () => {
+  const r = location.hash.replace('#/', '') || 'home';
+  if (r !== state.route) {
+    state.route = r;
+    render();
+  }
+});
+
+/* ============================================================
+ * 6. 管理后台页面
+ * ==========================================================*/
+const ADMIN_NAV = [
+  { route: 'admin-dashboard', name: '数据看板' },
+  { route: 'admin-questions', name: '题库管理' },
+  { route: 'admin-prizes', name: '奖品配置' },
+  { route: 'admin-winners', name: '获奖名单' }
+];
+const adminState = { q: { keyword: '', page: 1 }, w: { keyword: '', level: '' }, importErr: null };
+
+function renderAdminLogin(error = '') {
+  return `<div class="pc slim"><div style="padding:40px">
+    <div style="font-size:20px;font-weight:600;margin-bottom:4px">答题抽奖 · 管理后台</div>
+    <div class="tiny muted mb24">请使用管理员账号登录</div>
+    ${error ? `<div class="form-error">${esc(error)}</div>` : ''}
+    <div class="field"><label>账号</label><input id="adm-user" value="admin" placeholder="请输入账号"></div>
+    <div class="field"><label>密码</label><input id="adm-pass" type="password" value="admin123" placeholder="请输入密码"></div>
+    <button class="btn primary btn-block" data-action="admin-login-submit">登 录</button>
+    <div class="tiny muted center mt12">演示账号 admin / admin123，safety / safety123</div>
+  </div></div>`;
+}
+
+async function adminDashboard() {
+  const s = await Data.getStats();
+  const act = await Data.getActivity();
+  return `
+    <div class="stat-grid">
+      <div class="stat"><div class="n">${s.participants}</div><div class="l">参与人数</div></div>
+      <div class="stat"><div class="n">${s.examCount}</div><div class="l">答题人次</div></div>
+      <div class="stat"><div class="n">${s.passed}</div><div class="l">通关人数</div></div>
+      <div class="stat"><div class="n">${s.drawn}</div><div class="l">抽奖人数</div></div>
+      <div class="stat"><div class="n" style="color:var(--c-success)">${s.won}</div><div class="l">中奖人数</div></div>
+    </div>
+    <div class="card">
+      <div class="row between mb12"><b>奖品池</b><span class="tiny muted">已发 ${s.prizeTotal - s.prizeRemain} / 共 ${s.prizeTotal} 份</span></div>
+      ${s.prizes.map((p) => `
+        <div class="mb12">
+          <div class="row between tiny mb8"><span>${esc(p.name)} · ${esc(p.desc)}</span><span>${p.total - p.remain} / ${p.total}</span></div>
+          <div class="bar"><i style="width:${((p.total - p.remain) / p.total) * 100}%;background:${p.remain === 0 ? 'var(--c-danger)' : 'var(--c-primary)'}"></i></div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="row between mb8"><b>中奖率</b><span class="badge ${Math.abs(s.winRateActual - act.winRate) < 0.05 ? 'green' : 'amber'}">实际 ${(s.winRateActual * 100).toFixed(1)}% / 配置 ${(act.winRate * 100).toFixed(0)}%</span></div>
+      <div class="tiny muted">样本量较小时实际中奖率会明显偏离配置值，属正常现象；样本越大越接近 25%。</div>
+    </div>`;
+}
+
+async function adminQuestions() {
+  const { total, page, pageSize, list } = await Data.listQuestions({ keyword: adminState.q.keyword, page: adminState.q.page });
+  const stats = await Data.getQuestionStats();
+  if (total === 0 && !adminState.q.keyword) {
+    return `<div class="card">${emptyState('题库为空', '还没有导入任何题目，先导入 150 道单选题吧', { action: 'q-import-open', label: '导入题库' })}</div>`;
+  }
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  return `
+    <div class="card">
+      <div class="row between wrap gap12">
+        <div class="row gap12">
+          <input id="q-kw" value="${esc(adminState.q.keyword)}" placeholder="搜索题干或题号" style="padding:7px 12px;border:1px solid var(--c-border);border-radius:8px;width:220px">
+          <button class="btn" data-action="q-search">搜索</button>
+        </div>
+        <button class="btn primary" data-action="q-import-open">批量导入题库</button>
+      </div>
+      <div class="tiny muted mt12">共 ${total} 题（启用 ${stats.enabled} / 停用 ${stats.disabled}）· 分类：${stats.categories.map((c) => `${c.category} ${c.count}`).join('、')}</div>
+    </div>
+    ${total === 0 ? `<div class="card">${emptyState('没有匹配的题目', '换个关键词试试', null)}</div>` : `
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="tbl">
+        <thead><tr><th style="width:60px">题号</th><th>题干</th><th style="width:90px">分类</th><th style="width:60px">答案</th><th style="width:70px">状态</th><th style="width:70px">操作</th></tr></thead>
+        <tbody>
+          ${list.map((q) => `<tr>
+            <td>${q.no}</td>
+            <td title="${esc(q.title)}">${esc(q.title.length > 34 ? q.title.slice(0, 34) + '…' : q.title)}</td>
+            <td class="tiny muted">${esc(q.category)}</td>
+            <td><b>${esc(q.answer)}</b></td>
+            <td><span class="badge ${q.enabled ? 'green' : 'gray'}">${q.enabled ? '启用' : '停用'}</span></td>
+            <td><button class="btn" style="padding:3px 8px;font-size:12px" data-action="q-toggle" data-no="${q.no}" data-enabled="${q.enabled ? 0 : 1}">${q.enabled ? '停用' : '启用'}</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="row between mt12">
+      <span class="tiny muted">第 ${page} / ${pages} 页</span>
+      <div class="row gap12">
+        <button class="btn" data-action="q-page" data-p="${page - 1}" ${page <= 1 ? 'disabled style="opacity:.4"' : ''}>上一页</button>
+        <button class="btn" data-action="q-page" data-p="${page + 1}" ${page >= pages ? 'disabled style="opacity:.4"' : ''}>下一页</button>
+      </div>
+    </div>`}`;
+}
+
+async function adminPrizes() {
+  const act = await Data.getActivity();
+  const s = await Data.getStats();
+  const modeLabel = { remain: '按剩余库存加权（推荐）', fixed: '固定权重 1:8:16', initial: '按初始库存比例 5:50:100' };
+  return `
+    <div class="card">
+      <div class="row between mb12"><b>奖项配置</b><span class="tiny muted">发出后自动扣减，归零即不再参与抽取</span></div>
+      ${s.prizes.map((p) => `
+        <div style="padding:12px 0;border-bottom:1px solid var(--c-border)">
+          <div class="row between mb8">
+            <div class="row gap12"><span class="badge ${p.level === 1 ? 'amber' : p.level === 2 ? 'blue' : 'green'}">${esc(p.name)}</span><span class="tiny">${esc(p.desc)}</span></div>
+            ${p.remain === 0 ? '<span class="badge red">已抽完</span>' : `<span class="tiny muted">剩余 ${p.remain}</span>`}
+          </div>
+          <div class="bar"><i style="width:${(p.remain / p.total) * 100}%;background:${p.remain === 0 ? 'var(--c-danger)' : 'var(--c-primary)'}"></i></div>
+          <div class="row gap12 mt8">
+            <span class="tiny muted">总量</span><input value="${p.total}" style="width:70px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px" data-prize-total="${p.level}">
+            <span class="tiny muted">剩余</span><input value="${p.remain}" style="width:70px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px" data-prize-remain="${p.level}">
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="row between mb12"><b>抽奖策略</b><button class="btn primary" data-action="prize-save">保存配置</button></div>
+      <div class="field"><label>总中奖概率（0–1）</label><input id="cfg-rate" value="${act.winRate}"></div>
+      <div class="field"><label>中奖后等级分配策略</label>
+        <select id="cfg-mode" style="width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:8px">
+          ${Object.entries(modeLabel).map(([k, v]) => `<option value="${k}" ${act.weightMode === k ? 'selected' : ''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>奖品全部抽完后</label>
+        <select id="cfg-empty" style="width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:8px">
+          <option value="close" ${act.poolEmptyBehavior === 'close' ? 'selected' : ''}>关闭抽奖入口，提示已全部送出</option>
+          <option value="still-draw" ${act.poolEmptyBehavior === 'still-draw' ? 'selected' : ''}>仍可点击，但必定谢谢参与</option>
+        </select>
+      </div>
+      <div class="tiny muted">当前策略：${esc(modeLabel[act.weightMode])}。修改后仅影响之后的抽奖，历史记录不变。</div>
+    </div>`;
+}
+
+async function adminWinners() {
+  const { total, page, pageSize, list } = await Data.listWinners({ keyword: adminState.w.keyword, level: adminState.w.level, page: adminState.w.page });
+  const s = await Data.getStats();
+  if (total === 0) {
+    return `<div class="card">${emptyState('暂无记录', adminState.w.level ? '当前筛选条件下没有记录' : '还没有人中奖，等待活动开始', null)}</div>`;
+  }
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  return `
+    <div class="card">
+      <div class="row between wrap gap12">
+        <div class="row gap12">
+          <input id="w-kw" value="${esc(adminState.w.keyword)}" placeholder="搜索姓名或工号" style="padding:7px 12px;border:1px solid var(--c-border);border-radius:8px;width:200px">
+          <button class="btn" data-action="w-search">搜索</button>
+          <select id="w-lv" style="padding:7px 12px;border:1px solid var(--c-border);border-radius:8px">
+            <option value="">全部记录</option>
+            <option value="won" ${adminState.w.level === 'won' ? 'selected' : ''}>仅中奖</option>
+            <option value="1" ${adminState.w.level === '1' ? 'selected' : ''}>一等奖</option>
+            <option value="2" ${adminState.w.level === '2' ? 'selected' : ''}>二等奖</option>
+            <option value="3" ${adminState.w.level === '3' ? 'selected' : ''}>三等奖</option>
+          </select>
+          <button class="btn" data-action="w-filter">筛选</button>
+        </div>
+        <button class="btn primary" data-action="w-export">导出 CSV</button>
+      </div>
+      <div class="tiny muted mt12">中奖 ${s.won} 人 · 抽奖 ${s.drawn} 人 · 实际中奖率 ${(s.winRateActual * 100).toFixed(1)}%</div>
+    </div>
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="tbl">
+        <thead><tr><th>姓名</th><th>工号</th><th>奖项</th><th>奖品</th><th>中奖时间</th></tr></thead>
+        <tbody>
+          ${list.map((r) => `<tr>
+            <td>${esc(r.name)}</td>
+            <td class="tiny muted">${esc(r.empNo)}</td>
+            <td>${r.level ? `<span class="badge ${r.level === 1 ? 'amber' : r.level === 2 ? 'blue' : 'green'}">${r.level} 等奖</span>` : '<span class="badge gray">未中奖</span>'}</td>
+            <td class="tiny">${r.prizeName ? esc(r.prizeName) : '—'}</td>
+            <td class="tiny muted">${esc(r.wonAt)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="row between mt12">
+      <span class="tiny muted">共 ${total} 条，第 ${page} / ${pages} 页</span>
+      <div class="row gap12">
+        <button class="btn" data-action="w-page" data-p="${page - 1}" ${page <= 1 ? 'disabled style="opacity:.4"' : ''}>上一页</button>
+        <button class="btn" data-action="w-page" data-p="${page + 1}" ${page >= pages ? 'disabled style="opacity:.4"' : ''}>下一页</button>
+      </div>
+    </div>`;
+}
+
+async function renderAdmin() {
+  if (state.route !== 'admin-login' && !Data.currentAdmin()) state.route = 'admin-login';
+  if (state.route === 'admin-login') return renderAdminLogin();
+
+  let body = '';
+  try {
+    if (state.route === 'admin-dashboard') body = await adminDashboard();
+    else if (state.route === 'admin-questions') body = await adminQuestions();
+    else if (state.route === 'admin-prizes') body = await adminPrizes();
+    else if (state.route === 'admin-winners') body = await adminWinners();
+  } catch (e) {
+    body = `<div class="card">${skeleton(3)}</div><div class="form-error">加载失败：${esc(e.message)}</div>
+      <button class="btn primary" data-action="goto" data-route="${state.route}">重新加载</button>`;
+  }
+
+  const page = PAGES.find((p) => p.route === state.route) || {};
+  const admin = Data.currentAdmin() || { name: '-' };
+  return `<div class="pc"><div class="admin-layout">
+    <aside class="admin-side">
+      <div class="logo">答题抽奖 · 后台</div>
+      ${ADMIN_NAV.map((n) => `<a href="javascript:;" class="${state.route === n.route ? 'on' : ''}" data-action="goto" data-route="${n.route}">${n.name}</a>`).join('')}
+      <div style="margin-top:auto;padding:12px 16px;border-top:1px solid #444441">
+        <div class="tiny" style="color:#888780">${esc(admin.name)}</div>
+        <a href="javascript:;" data-action="admin-logout" style="padding:6px 0;color:#B4B2A9">退出登录</a>
+      </div>
+    </aside>
+    <main class="admin-main" style="position:relative">
+      <div class="admin-head"><h2>${esc(page.name || '')}</h2><span class="tiny muted">${esc(page.layer || '')}</span></div>
+      ${body}
+      ${loadingMask()}
+    </main>
+  </div></div>`;
+}
+
+/* ============================================================
+ * 7. 弹窗
+ * ==========================================================*/
+function openModal(html) {
+  closeModal();
+  const d = document.createElement('div');
+  d.className = 'modal';
+  d.id = 'modalRoot';
+  d.innerHTML = `<div class="modal-box">${html}</div>`;
+  document.body.appendChild(d);
+}
+function closeModal() {
+  const m = $('#modalRoot');
+  if (m) m.remove();
+}
+
+function openImportModal() {
+  const demo = `题号,题干,选项A,选项B,选项C,选项D,正确答案,解析
+1,手提式干粉灭火器的报废年限是,A.5年,B.8年,C.10年,D.12年,C,GB 50444 规定为 10 年
+2,安全电压在潮湿环境中限值是,A.36V,B.24V,C.12V,D.6V,C,特别危险环境限值为 12V
+3,本题答案故意写错用于演示校验,A.甲,B.乙,C.丙,D.丁,E,演示非法答案被拦截
+4,本题选项重复用于演示校验,A.甲,B.甲,C.丙,D.丁,A,演示重复选项被拦截
+5,灭火器的压力表指针在绿区表示？,A.压力不足,B.压力正常,C.压力过高,D.已失效,B,与题干重复会被拦截`;
+  openModal(`
+    <div class="modal-head"><h3>批量导入题库</h3><button class="btn" data-action="q-import-close">✕</button></div>
+    <div class="modal-body">
+      <div class="tiny muted mb12">支持 CSV / Excel 复制粘贴。表头顺序：题号,题干,选项A,选项B,选项C,选项D,正确答案,解析</div>
+      <textarea id="imp-text" rows="10" style="width:100%;padding:10px;border:1px solid var(--c-border);border-radius:8px;font-family:monospace;font-size:12px" placeholder="在此粘贴 CSV 内容，首行为表头"></textarea>
+      <div class="row gap12 mt12">
+        <button class="btn" data-action="q-import-demo">载入示例数据（含 2 条非法）</button>
+        <select id="imp-mode" style="padding:7px 10px;border:1px solid var(--c-border);border-radius:8px">
+          <option value="append">增量追加</option>
+          <option value="skip">跳过重复</option>
+          <option value="overwrite">全量覆盖</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-action="q-import-close">取消</button>
+      <button class="btn primary" data-action="q-import-confirm">开始导入</button>
+    </div>`);
+  window.__demoCsv = demo;
+}
+
+function parseCsv(text) {
+  const lines = String(text).trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) return [];
+  const heads = lines[0].split(/[,\t]/).map((s) => s.trim());
+  return lines.slice(1).map((line) => {
+    const cells = line.split(/[,\t]/).map((s) => s.trim());
+    const row = {};
+    heads.forEach((h, i) => (row[h] = cells[i] ?? ''));
+    return row;
+  });
+}
+
+/* ============================================================
+ * 8. 事件总线
+ * ==========================================================*/
+async function onAction(e) {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const a = el.dataset.action;
+  const route = el.dataset.route;
+
+  // ---- 导航 ----
+  if (a === 'goto') return goto(route);
+  if (a === 'go-register') return goto('register');
+
+  // ---- 端切换 ----
+  if (a === 'switch-side') {
+    state.side = el.dataset.side;
+    state.route = state.side === 'c' ? 'home' : 'admin-login';
+    return goto(state.route);
+  }
+
+  // ---- 登记 ----
+  if (a === 'fill-demo') {
+    $('#ipt-name').value = el.dataset.name;
+    $('#ipt-emp').value = el.dataset.emp;
+    return;
+  }
+  if (a === 'submit-register') {
+    const name = $('#ipt-name').value.trim();
+    const emp = $('#ipt-emp').value.trim();
+    let ok = true;
+    $('#f-name').classList.toggle('invalid', !(name.length >= 2 && name.length <= 10));
+    if (!(name.length >= 2 && name.length <= 10)) ok = false;
+    $('#f-emp').classList.toggle('invalid', !/^[A-Za-z0-9]{4,12}$/.test(emp));
+    if (!/^[A-Za-z0-9]{4,12}$/.test(emp)) ok = false;
+    if (!ok) return;
+    try {
+      const res = await call(() => Data.register(name, emp), { loading: '登记中…' });
+      state.me = res.participant;
+      if (res.warning) toast(res.warning, 'err');
+      toast(res.reused ? '已识别你的身份' : '登记成功', 'ok');
+      goto('quiz');
+    } catch (_) {}
+    return;
+  }
+  if (a === 'reset-me') {
+    Data.logoutParticipant();
+    state.me = null;
+    state.quiz = null;
+    state.lottery = null;
+    toast('已退出身份');
+    return goto('home');
+  }
+
+  // ---- 答题 ----
+  if (a === 're-quiz') {
+    state.quiz = null; // 清空会话，下次进入重新抽题
+    return goto('quiz');
+  }
+  if (a === 'pick') {
+    state.quiz.answers[state.quiz.index] = el.dataset.key;
+    return render();
+  }
+  if (a === 'prev-q') {
+    if (state.quiz.index > 0) state.quiz.index--;
+    return render();
+  }
+  if (a === 'next-q') {
+    if (state.quiz.index < state.quiz.questions.length - 1) state.quiz.index++;
+    return render();
+  }
+  if (a === 'submit-quiz') {
+    const q = state.quiz;
+    if (q.answers.some((x) => x === null)) return toast('还有题目未作答', 'err');
+    try {
+      const r = await call(() => Data.submitExam(q.questions.map((x) => x.no), q.answers), { loading: '正在判分…' });
+      q.result = r;
+      state.me = r.participant;
+      goto('quiz-result');
+    } catch (_) {}
+    return;
+  }
+
+  // ---- 抽奖 ----
+  if (a === 'do-draw') {
+    const btn = el;
+    btn.disabled = true;
+    btn.textContent = '抽奖中…';
+    const wheel = $('#wheel');
+    let deg = 0;
+    wheel.style.transition = 'none';
+    const timer = setInterval(() => {
+      deg += 14;
+      wheel.style.transform = `rotate(${deg}deg)`;
+    }, 16);
+    try {
+      const r = await Data.drawLottery();
+      clearInterval(timer);
+      state.lottery = r;
+      const n = 4; // 与 pageLottery 扇区数一致，保证转盘停在中奖对应扇区
+      const idx = r.level ? r.level - 1 : 3;
+      const target = (360 - (idx + 0.5) * (360 / n) + 360) % 360;
+      const delta = ((target - (deg % 360)) % 360 + 360) % 360 + 720;
+      wheel.style.transition = 'transform 1.8s cubic-bezier(.12,.85,.32,1)';
+      wheel.style.transform = `rotate(${deg + delta}deg)`;
+      setTimeout(() => goto('lottery-result'), 2000);
+    } catch (err) {
+      clearInterval(timer);
+      btn.disabled = false;
+      btn.textContent = '开始抽奖';
+      toast(err.message || '抽奖失败', 'err');
+    }
+    return;
+  }
+
+  // ---- 后台登录 ----
+  if (a === 'admin-login-submit') {
+    const u = $('#adm-user').value.trim();
+    const p = $('#adm-pass').value;
+    try {
+      await call(() => Data.adminLogin(u, p), { loading: '登录中…' });
+      toast('登录成功', 'ok');
+      goto('admin-dashboard');
+    } catch (_) {}
+    return;
+  }
+  if (a === 'admin-logout') {
+    Data.adminLogout();
+    state.admin = null;
+    return goto('admin-login');
+  }
+
+  // ---- 题库管理 ----
+  if (a === 'q-search') {
+    adminState.q.keyword = $('#q-kw').value.trim();
+    adminState.q.page = 1;
+    return render();
+  }
+  if (a === 'q-page') {
+    adminState.q.page = Math.max(1, Number(el.dataset.p));
+    return render();
+  }
+  if (a === 'q-toggle') {
+    try {
+      await Data.toggleQuestion(el.dataset.no, el.dataset.enabled === '1');
+      toast('已更新', 'ok');
+      render();
+    } catch (_) {}
+    return;
+  }
+  if (a === 'q-import-open') return openImportModal();
+  if (a === 'q-import-close') return closeModal();
+  if (a === 'q-import-demo') {
+    $('#imp-text').value = window.__demoCsv;
+    return;
+  }
+  if (a === 'q-import-confirm') {
+    const rows = parseCsv($('#imp-text').value);
+    const mode = $('#imp-mode').value;
+    try {
+      const res = await call(() => Data.importQuestions(rows, mode), { loading: '正在导入…' });
+      closeModal();
+      adminState.q.page = 1;
+      if (res.failed === 0) {
+        toast(`导入成功 ${res.success} 条`, 'ok');
+      } else {
+        openModal(`
+          <div class="modal-head"><h3>导入完成（部分失败）</h3><button class="btn" data-action="q-import-close">✕</button></div>
+          <div class="modal-body">
+            <div class="row gap12 mb12">
+              <span class="badge green">成功 ${res.success} 条</span>
+              <span class="badge red">失败 ${res.failed} 条</span>
+            </div>
+            <table class="tbl"><thead><tr><th style="width:70px">行号</th><th>失败原因</th></tr></thead>
+              <tbody>${res.errors.map((x) => `<tr><td>${x.lineNo}</td><td class="tiny">${esc(x.reason)}</td></tr>`).join('')}</tbody></table>
+          </div>
+          <div class="modal-foot"><button class="btn primary" data-action="q-import-close">知道了</button></div>`);
+      }
+      render();
+    } catch (_) {}
+    return;
+  }
+
+  // ---- 奖品配置 ----
+  if (a === 'prize-save') {
+    try {
+      const rate = Number($('#cfg-rate').value);
+      if (!(rate >= 0 && rate <= 1)) return toast('中奖概率应在 0 到 1 之间', 'err');
+      await call(() => Data.updateActivity({ winRate: rate, weightMode: $('#cfg-mode').value, poolEmptyBehavior: $('#cfg-empty').value }), { loading: '保存中…' });
+      for (const el2 of document.querySelectorAll('[data-prize-total]')) {
+        await Data.updatePrize(el2.dataset.prizeTotal, { total: Number(el2.value) });
+      }
+      for (const el2 of document.querySelectorAll('[data-prize-remain]')) {
+        await Data.updatePrize(el2.dataset.prizeRemain, { remain: Number(el2.value) });
+      }
+      toast('配置已保存', 'ok');
+      render();
+    } catch (_) {}
+    return;
+  }
+
+  // ---- 名单 ----
+  if (a === 'w-search') {
+    adminState.w.keyword = $('#w-kw').value.trim();
+    return render();
+  }
+  if (a === 'w-filter') {
+    adminState.w.level = $('#w-lv').value;
+    return render();
+  }
+  if (a === 'w-page') {
+    adminState.w.page = Math.max(1, Number(el.dataset.p));
+    return render();
+  }
+  if (a === 'w-export') {
+    const csv = await Data.exportWinnersCsv();
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a2 = document.createElement('a');
+    a2.href = url;
+    a2.download = `获奖名单_${new Date().toISOString().slice(0, 10)}.csv`;
+    a2.click();
+    URL.revokeObjectURL(url);
+    toast('已导出 CSV', 'ok');
+    return;
+  }
+
+  // ---- 顶栏 ----
+  if (a === 'toggle-anno') {
+    state.annoOpen = !state.annoOpen;
+    renderSidePanels();
+    $('#btnAnno').classList.toggle('on', state.annoOpen);
+    return;
+  }
+  if (a === 'toggle-debug') {
+    state.debugOpen = !state.debugOpen;
+    renderSidePanels();
+    $('#btnDebug').classList.toggle('on', state.debugOpen);
+    return;
+  }
+
+  // ---- 调试面板 ----
+  if (a === 'dbg-force-error') { state.forceError = true; return toast('已设置：下次请求将失败'); }
+  if (a === 'dbg-clear-questions') {
+    TEST_UTILS.reset();
+    const all = await Data.listQuestions({ pageSize: 9999 });
+    for (const q of all.list) await Data.deleteQuestion(q.no);
+    toast('题库已清空，切到题库管理查看空状态', 'ok');
+    return render();
+  }
+  if (a === 'dbg-clear-winners') {
+    TEST_UTILS.reset();
+    state.me = null;
+    state.quiz = null;
+    state.lottery = null;
+    toast('数据已重置（名单为空）', 'ok');
+    return render();
+  }
+  if (a === 'dbg-see-skeleton') {
+    const vp = $('#viewport');
+    vp.innerHTML = `<div class="phone"><div class="phone-screen"><div class="statusbar"><span>9:41</span><span>5G</span></div>
+      <div class="navbar"><div class="title">加载态</div></div>
+      <div class="page-body">${skeleton(4)}</div>${loadingMask()}</div></div>`;
+    $('#loadingMask').style.display = 'flex';
+    $('#loadingMask').querySelector('.loading-text').textContent = '正在加载…';
+    setTimeout(() => render(), 2200);
+    return;
+  }
+  if (a === 'dbg-drain-1') {
+    TEST_UTILS.drainPrize(1);
+    toast('一等奖库存已清零，去抽奖不会中一等奖', 'ok');
+    return render();
+  }
+  if (a === 'dbg-drain-all') {
+    [1, 2, 3].forEach((l) => TEST_UTILS.drainPrize(l));
+    toast('全部奖品已清零，抽奖页将提示已全部送出', 'ok');
+    return render();
+  }
+  if (a === 'dbg-sim') {
+    const r = TEST_UTILS.simulateDraws(2000);
+    await render(); // 先重建面板，再写入结果
+    const out = $('#dbgOut');
+    if (out) {
+      out.innerHTML = `模拟 ${r.times} 次：中奖 ${r.won} 次（${(r.actualWinRate * 100).toFixed(2)}%）<br>
+        一等 ${r.byLevel[1]} / 二等 ${r.byLevel[2]} / 三等 ${r.byLevel[3]}<br>
+        超发 <b style="color:${r.oversold ? '#F09595' : '#97C459'}">${r.oversold}</b> 件 · 降级 ${r.fallback} 次<br>
+        剩余：${r.remain.map((x) => `${x.level}等${x.remain}`).join(' ')}<br>
+        <span style="color:#888780">模拟会消耗真实奖池，如需重来请点「重置全部数据」</span>`;
+    }
+    toast('模拟完成', 'ok');
+    return;
+  }
+  if (a === 'dbg-reset') {
+    TEST_UTILS.reset();
+    state.me = null;
+    state.quiz = null;
+    state.lottery = null;
+    toast('全部数据已重置', 'ok');
+    return render();
+  }
+  if (a === 'dbg-seed') {
+    const p = TEST_UTILS.seedParticipant('快捷测试', 'T' + Math.floor(1000 + Math.random() * 8999), { passed: true });
+    state.me = p;
+    toast(`已生成测试身份 ${p.name} / ${p.empNo}（已通关未抽奖）`, 'ok');
+    return render();
+  }
+}
+
+/* ============================================================
+ * 9. 启动
+ * ==========================================================*/
+async function init() {
+  state.me = await Data.currentParticipant();
+  state.route = location.hash.replace('#/', '') || 'home';
+  document.addEventListener('click', onAction);
+  $('#btnAnno').setAttribute('data-action', 'toggle-anno');
+  $('#btnDebug').setAttribute('data-action', 'toggle-debug');
+  render();
+}
+init();
+</script>
+</body>
+</html>
