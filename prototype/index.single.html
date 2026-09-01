@@ -1,0 +1,2372 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>答题抽奖小程序 · 可交互原型</title>
+<style>
+:root{
+  --c-primary:#185FA5; --c-primary-bg:#E6F1FB;
+  --c-success:#3B6D11; --c-success-bg:#EAF3DE;
+  --c-warn:#854F0B; --c-warn-bg:#FAEEDA;
+  --c-danger:#A32D2D; --c-danger-bg:#FCEBEB;
+  --c-text:#1a1a1a; --c-text2:#5F5E5A; --c-text3:#888780;
+  --c-border:#e3e3e0; --c-bg:#f1efe8; --c-surface:#ffffff;
+  --radius:12px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Microsoft YaHei",sans-serif;background:var(--c-bg);color:var(--c-text);font-size:14px;line-height:1.6}
+button{font-family:inherit;cursor:pointer;border:none;background:none;font-size:14px}
+input,select,textarea{font-family:inherit;font-size:14px}
+table{width:100%;border-collapse:collapse}
+
+/* ============ 顶栏 ============ */
+.topbar{position:sticky;top:0;z-index:100;background:var(--c-surface);border-bottom:1px solid var(--c-border);padding:10px 20px;display:flex;align-items:center;gap:16px;flex-wrap:wrap}
+.topbar h1{font-size:15px;font-weight:600}
+.topbar .sub{font-size:12px;color:var(--c-text3)}
+.seg{display:flex;background:var(--c-bg);border-radius:8px;padding:2px}
+.seg button{padding:6px 14px;border-radius:6px;font-size:13px;color:var(--c-text2)}
+.seg button.on{background:var(--c-surface);color:var(--c-text);font-weight:500;box-shadow:0 1px 3px rgba(0,0,0,.08)}
+.spacer{flex:1}
+.btn{padding:7px 14px;border-radius:8px;font-size:13px;border:1px solid var(--c-border);background:var(--c-surface);color:var(--c-text)}
+.btn:hover{background:var(--c-bg)}
+.btn.primary{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.btn.primary:hover{background:#124d87}
+.btn.on{background:var(--c-primary-bg);border-color:var(--c-primary);color:var(--c-primary)}
+.pages-nav{display:flex;gap:4px;flex-wrap:wrap}
+.pages-nav button{padding:5px 10px;border-radius:6px;font-size:12px;color:var(--c-text2);border:1px solid transparent}
+.pages-nav button:hover{background:var(--c-bg)}
+.pages-nav button.on{background:var(--c-primary-bg);color:var(--c-primary);border-color:var(--c-primary)}
+
+/* ============ 舞台 ============ */
+.stage{display:flex;gap:24px;padding:24px 20px 40px;align-items:flex-start;justify-content:center;flex-wrap:wrap}
+.phone{width:390px;background:#1a1a1a;border-radius:44px;padding:12px;box-shadow:0 12px 40px rgba(0,0,0,.18);flex-shrink:0}
+.phone-screen{width:366px;height:760px;background:#f7f8fa;border-radius:34px;overflow:hidden;display:flex;flex-direction:column;position:relative}
+.statusbar{height:36px;display:flex;align-items:center;justify-content:space-between;padding:0 20px;font-size:12px;color:#1a1a1a;flex-shrink:0;background:#f7f8fa}
+.navbar{height:44px;display:flex;align-items:center;justify-content:center;position:relative;background:var(--c-surface);border-bottom:1px solid var(--c-border);flex-shrink:0}
+.navbar .back{position:absolute;left:12px;font-size:20px;color:var(--c-text);line-height:1}
+.navbar .title{font-size:16px;font-weight:500}
+.page-body{flex:1;overflow-y:auto;padding:16px}
+.page-body::-webkit-scrollbar{width:4px}
+.page-body::-webkit-scrollbar-thumb{background:#d0d0cc;border-radius:2px}
+.tabbar{height:56px;background:var(--c-surface);border-top:1px solid var(--c-border);display:flex;flex-shrink:0}
+.tabbar button{flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;font-size:11px;color:var(--c-text3)}
+.tabbar button.on{color:var(--c-primary)}
+.tabbar .dot{width:18px;height:18px;border-radius:5px;background:currentColor;opacity:.5;margin-bottom:1px}
+
+/* ============ 后台 ============ */
+.pc{width:1180px;max-width:100%;background:var(--c-surface);border-radius:var(--radius);overflow:hidden;box-shadow:0 4px 20px rgba(0,0,0,.06);flex-shrink:0}
+.pc.slim{width:420px}
+.admin-layout{display:flex;min-height:700px}
+.admin-side{width:180px;background:#2C2C2A;color:#D3D1C7;padding:16px 0;flex-shrink:0;display:flex;flex-direction:column}
+.admin-side .logo{padding:0 16px 16px;font-size:14px;font-weight:600;color:#fff;border-bottom:1px solid #444441;margin-bottom:8px}
+.admin-side a{display:block;padding:10px 16px;color:#B4B2A9;font-size:13px;text-decoration:none}
+.admin-side a:hover{background:#3a3a37;color:#fff}
+.admin-side a.on{background:var(--c-primary);color:#fff}
+.admin-main{flex:1;padding:20px;overflow-y:auto;max-height:700px;background:#fafaf9}
+.admin-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.admin-head h2{font-size:16px;font-weight:600}
+
+/* ============ 通用组件 ============ */
+.card{background:var(--c-surface);border-radius:var(--radius);padding:16px;margin-bottom:12px;border:1px solid var(--c-border)}
+.card.flat{border:none;box-shadow:0 1px 3px rgba(0,0,0,.04)}
+.muted{color:var(--c-text2)}
+.tiny{font-size:12px}
+.center{text-align:center}
+.row{display:flex;align-items:center;gap:8px}
+.row.between{justify-content:space-between}
+.wrap{flex-wrap:wrap}
+.gap12{gap:12px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt16{margin-top:16px}.mt24{margin-top:24px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}
+
+.field{margin-bottom:14px}
+.field label{display:block;font-size:13px;color:var(--c-text2);margin-bottom:6px}
+.field input{width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:8px;background:var(--c-surface)}
+.field input:focus{outline:none;border-color:var(--c-primary)}
+.field .err{color:var(--c-danger);font-size:12px;margin-top:4px;display:none}
+.field.invalid input{border-color:var(--c-danger)}
+.field.invalid .err{display:block}
+
+.btn-block{width:100%;padding:13px;border-radius:10px;font-size:15px;font-weight:500}
+.btn-lg{padding:12px 20px;border-radius:10px;font-size:15px}
+
+.badge{display:inline-block;padding:2px 8px;border-radius:6px;font-size:11px;line-height:1.7}
+.badge.blue{background:var(--c-primary-bg);color:var(--c-primary)}
+.badge.green{background:var(--c-success-bg);color:var(--c-success)}
+.badge.amber{background:var(--c-warn-bg);color:var(--c-warn)}
+.badge.red{background:var(--c-danger-bg);color:var(--c-danger)}
+.badge.gray{background:#F1EFE8;color:var(--c-text2)}
+
+/* 四态 */
+.empty{padding:48px 20px;text-align:center;color:var(--c-text3)}
+.empty .icon{width:56px;height:56px;border-radius:16px;background:#F1EFE8;margin:0 auto 12px}
+.empty .t{font-size:14px;color:var(--c-text2);margin-bottom:4px}
+.empty .d{font-size:12px;margin-bottom:16px}
+.skel{background:linear-gradient(90deg,#eee 25%,#f5f5f5 50%,#eee 75%);background-size:200% 100%;animation:sh 1.2s infinite;border-radius:6px}
+@keyframes sh{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.skel-line{height:14px;margin-bottom:10px}
+.skel-box{height:80px;margin-bottom:12px}
+.loading-mask{position:absolute;inset:0;background:rgba(255,255,255,.92);display:flex;flex-direction:column;align-items:center;justify-content:center;z-index:50;gap:12px}
+.spinner{width:36px;height:36px;border:3px solid #e3e3e0;border-top-color:var(--c-primary);border-radius:50%;animation:spin .8s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.form-error{background:var(--c-danger-bg);border:1px solid #F7C1C1;color:var(--c-danger);padding:10px 12px;border-radius:8px;font-size:13px;margin-bottom:12px}
+
+/* 题目 */
+.q-progress{display:flex;gap:4px;margin-bottom:16px}
+.q-progress i{flex:1;height:4px;border-radius:2px;background:#e3e3e0}
+.q-progress i.done{background:var(--c-primary)}
+.q-progress i.cur{background:var(--c-primary)}
+.q-title{font-size:16px;line-height:1.6;margin-bottom:4px}
+.opt{display:flex;align-items:flex-start;gap:10px;padding:14px;border:1px solid var(--c-border);border-radius:10px;margin-bottom:10px;background:var(--c-surface);text-align:left;width:100%}
+.opt:active{background:#f5f5f5}
+.opt.sel{border-color:var(--c-primary);background:var(--c-primary-bg)}
+.opt .k{width:24px;height:24px;border-radius:50%;border:1px solid var(--c-border);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0;background:#fff}
+.opt.sel .k{background:var(--c-primary);color:#fff;border-color:var(--c-primary)}
+.opt.correct{border-color:var(--c-success);background:var(--c-success-bg)}
+.opt.wrong{border-color:var(--c-danger);background:var(--c-danger-bg)}
+
+/* 抽奖转盘 */
+.wheel-wrap{position:relative;width:260px;height:260px;margin:20px auto}
+.wheel{width:100%;height:100%;border-radius:50%;border:8px solid #fff;box-shadow:0 4px 20px rgba(0,0,0,.12);position:relative;overflow:hidden}
+.wheel.spin{transition:transform 4s cubic-bezier(.15,.85,.35,1)}
+.wheel-item{position:absolute;left:50%;top:50%;width:50%;height:0;transform-origin:0 0}
+.wheel-item span{position:absolute;left:64px;top:-9px;font-size:12px;font-weight:600;color:#fff;white-space:nowrap;text-shadow:0 1px 3px rgba(0,0,0,.35)}
+.pointer{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:56px;height:56px;border-radius:50%;background:var(--c-surface);border:4px solid var(--c-primary);display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:600;color:var(--c-primary);z-index:5;box-shadow:0 2px 10px rgba(0,0,0,.15)}
+
+/* 结果弹层 */
+.result-pop{position:absolute;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:60;padding:24px}
+.result-card{background:var(--c-surface);border-radius:20px;padding:28px 24px;text-align:center;width:100%}
+.prize-icon{width:72px;height:72px;border-radius:20px;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;font-size:30px}
+.level-1{background:#FAEEDA}.level-2{background:#E6F1FB}.level-3{background:#EAF3DE}.level-0{background:#F1EFE8}
+
+/* Toast */
+.toast{position:fixed;bottom:32px;left:50%;transform:translateX(-50%);background:#2C2C2A;color:#fff;padding:10px 18px;border-radius:8px;font-size:13px;z-index:999;opacity:0;transition:opacity .2s;pointer-events:none}
+.toast.show{opacity:1}
+.toast.ok{background:var(--c-success)}
+.toast.err{background:var(--c-danger)}
+
+/* 后台表格 */
+.tbl{font-size:13px}
+.tbl th{background:#fafaf9;text-align:left;padding:10px 12px;color:var(--c-text2);font-weight:500;border-bottom:1px solid var(--c-border);white-space:nowrap}
+.tbl td{padding:10px 12px;border-bottom:1px solid #f0f0ee;vertical-align:middle}
+.tbl tr:hover td{background:#fafaf9}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:20px}
+.stat{background:#fafaf9;border:1px solid var(--c-border);border-radius:10px;padding:14px}
+.stat .n{font-size:22px;font-weight:600;line-height:1.2}
+.stat .l{font-size:12px;color:var(--c-text2);margin-top:2px}
+.bar{height:8px;background:#eee;border-radius:4px;overflow:hidden;margin-top:6px}
+.bar i{display:block;height:100%;background:var(--c-primary);border-radius:4px}
+
+/* 弹窗 */
+.modal{position:fixed;inset:0;background:rgba(0,0,0,.5);display:flex;align-items:center;justify-content:center;z-index:200}
+.modal-box{background:var(--c-surface);border-radius:12px;width:520px;max-width:92vw;max-height:84vh;overflow:auto}
+.modal-head{padding:16px 20px;border-bottom:1px solid var(--c-border);display:flex;justify-content:space-between;align-items:center}
+.modal-head h3{font-size:15px;font-weight:600}
+.modal-body{padding:20px}
+.modal-foot{padding:12px 20px;border-top:1px solid var(--c-border);display:flex;justify-content:flex-end;gap:8px}
+.drop{border:2px dashed var(--c-border);border-radius:10px;padding:28px;text-align:center;color:var(--c-text3);cursor:pointer}
+.drop:hover{border-color:var(--c-primary);background:var(--c-primary-bg)}
+.switch{width:40px;height:22px;border-radius:11px;background:#d0d0cc;position:relative;cursor:pointer;transition:.2s;flex-shrink:0}
+.switch.on{background:var(--c-primary)}
+.switch i{position:absolute;top:2px;left:2px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.2s}
+.switch.on i{left:20px}
+
+/* 标注面板 */
+.anno{width:320px;flex-shrink:0}
+.anno-box{background:var(--c-surface);border-radius:var(--radius);padding:16px;border:1px solid var(--c-border);margin-bottom:12px}
+.anno-box h4{font-size:13px;font-weight:600;margin-bottom:10px;color:var(--c-text);display:flex;align-items:center;gap:6px}
+.anno-box h4::before{content:'';width:3px;height:13px;background:var(--c-primary);border-radius:2px}
+.anno-kv{display:flex;gap:8px;font-size:12px;margin-bottom:6px}
+.anno-kv b{color:var(--c-text2);font-weight:400;flex-shrink:0;width:52px}
+.anno-kv span{color:var(--c-text);flex:1}
+.anno ul{list-style:none;font-size:12px}
+.anno ul li{padding:5px 0 5px 12px;position:relative;color:var(--c-text2);border-bottom:1px dashed #f0f0ee}
+.anno ul li:last-child{border-bottom:none}
+.anno ul li::before{content:'';position:absolute;left:0;top:12px;width:4px;height:4px;border-radius:50%;background:var(--c-primary)}
+.anno ul li b{color:var(--c-text);font-weight:500}
+
+/* 调试面板 */
+.debug{width:320px;flex-shrink:0}
+.debug-box{background:#2C2C2A;color:#D3D1C7;border-radius:var(--radius);padding:14px;margin-bottom:12px}
+.debug-box h4{font-size:12px;color:#fff;margin-bottom:10px;letter-spacing:.5px}
+.debug-box button{display:block;width:100%;text-align:left;padding:7px 10px;border-radius:6px;font-size:12px;color:#D3D1C7;margin-bottom:4px;background:#3a3a37}
+.debug-box button:hover{background:#4a4a47;color:#fff}
+.debug-box button.act{background:var(--c-danger);color:#fff}
+.debug-box .hint{font-size:11px;color:#888780;line-height:1.5;margin-top:8px}
+.sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0)}
+</style>
+</head>
+<body>
+
+<header class="topbar">
+  <div>
+    <h1>答题抽奖小程序 · 可交互原型</h1>
+    <div class="sub">低保真线框实现 · 覆盖 12 个页面与空/加载/报错/成功四态</div>
+  </div>
+  <div class="seg" id="segClient">
+    <button data-side="c" data-action="switch-side" class="on">参与者端（小程序）</button>
+    <button data-side="a" data-action="switch-side">管理后台（PC）</button>
+  </div>
+  <div class="pages-nav" id="pageNav"></div>
+  <div class="spacer"></div>
+  <button class="btn" id="btnAnno">设计标注</button>
+  <button class="btn" id="btnDebug">测试面板</button>
+</header>
+
+<div class="stage">
+  <div id="viewport"></div>
+  <div id="sidePanels" style="display:flex;gap:12px;flex-wrap:wrap"></div>
+</div>
+
+<div class="toast" id="toast"></div>
+<h2 class="sr-only">答题抽奖小程序可交互原型，包含参与者端 7 个页面与管理后台 5 个页面</h2>
+
+<script type="module">
+(function(){
+/* === test_data.js (inlined) === */
+/**
+ * test_data.js —— 静态测试数据层
+ *
+ * 本文件只存放静态数据，不含任何业务逻辑。
+ * 所有字段名称与《PRD-答题抽奖小程序.md》§5.3 数据模型保持一致，不做重命名、不做裁剪。
+ * 后续接入后端接口时，只需替换本文件内容（或改为从接口拉取），data.js 无需改动。
+ *
+ * 派生字段（_id / activity_id / content_hash / created_at）由 data.js 在归一化时补全，
+ * 避免在本文件中硬编码无业务含义的值。
+ */
+
+/* ============================================================
+ * 1. 活动配置  → activity 表
+ * ==========================================================*/
+const  ACTIVITY = {
+  name: '2026 年安全生产知识竞赛',
+  status: 'open', // draft | open | closed
+  startAt: '2026-09-05 09:00:00',
+  endAt: '2026-09-12 18:00:00',
+  passScore: 3, // 通关阈值：5 题中答对 ≥3
+  questionCount: 5, // 每次抽题数量
+  winRate: 0.25, // 总中奖概率，恒定 25%
+  weightMode: 'remain', // remain | fixed | initial —— 中奖后等级分配策略
+  poolEmptyBehavior: 'close', // close | still-draw
+  description:
+    '本次活动共 150 道单选题，每次随机抽取 5 题，答对 3 题即可通关并参与抽奖。每人仅可抽奖一次。'
+};
+
+/* ============================================================
+ * 2. 题库  → question 表（150 道单选题）
+ * 字段：no, category, title, options{A,B,C,D}, answer, analysis, enabled
+ * ==========================================================*/
+const  QUESTIONS = [
+
+  /* ---------- 安全生产 ---------- */
+  { no: 1, category: '安全生产', title: '我国安全生产工作的方针是？', options: { A: '效益优先、兼顾安全', B: '生产第一、安全第二', C: '安全第一、预防为主、综合治理', D: '谁主管、谁负责' }, answer: 'C', analysis: '《安全生产法》第三条确立"安全第一、预防为主、综合治理"的方针。', enabled: true },
+  { no: 2, category: '安全生产', title: '生产经营单位的（ ）对本单位的安全生产工作全面负责。', options: { A: '安全总监', B: '班组长', C: '工会主席', D: '主要负责人' }, answer: 'D', analysis: '《安全生产法》第五条规定，主要负责人对本单位安全生产工作全面负责。', enabled: true },
+  { no: 3, category: '安全生产', title: '新员工三级安全教育是指？', options: { A: '公司、车间、班组', B: '国家、省、市', C: '理论、实操、考核', D: '入职、转正、年度' }, answer: 'A', analysis: '三级安全教育指厂（公司）级、车间（部门）级、班组级。', enabled: true },
+  { no: 4, category: '安全生产', title: '从业人员发现直接危及人身安全的紧急情况时，有权？', options: { A: '停止作业并撤离现场', B: '继续作业等待指令', C: '自行处理后再汇报', D: '征求同事意见' }, answer: 'A', analysis: '《安全生产法》第五十五条规定，从业人员有权停止作业或在采取可能的应急措施后撤离。', enabled: true },
+  { no: 5, category: '安全生产', title: '特种作业人员必须取得（ ）方可上岗。', options: { A: '特种作业操作证', B: '健康证明', C: '学历证书', D: '岗位培训证明' }, answer: 'A', analysis: '特种作业人员须经专门培训并考核合格，取得特种作业操作证。', enabled: true },
+  { no: 6, category: '安全生产', title: '安全色的四种基本颜色是？', options: { A: '红、白、黑、黄', B: '红、黄、蓝、绿', C: '红、橙、黄、绿', D: '黑、白、红、蓝' }, answer: 'B', analysis: 'GB 2893 规定安全色为红、蓝、黄、绿四种，对比色为黑白。', enabled: true },
+  { no: 7, category: '安全生产', title: '安全色中红色表示？', options: { A: '指令', B: '禁止、停止', C: '警告', D: '提示' }, answer: 'B', analysis: '红色表示禁止、停止、消防和危险。', enabled: true },
+  { no: 8, category: '安全生产', title: '安全帽的有效使用期限一般不超过？', options: { A: '2.5 年', B: '2 年', C: '1 年', D: '5 年' }, answer: 'A', analysis: '塑料安全帽从制造完成日起，有效使用期一般不超过 2.5 年。', enabled: true },
+  { no: 9, category: '安全生产', title: '高处作业是指坠落高度基准面（ ）及以上。', options: { A: '2 米', B: '1.5 米', C: '3 米', D: '5 米' }, answer: 'A', analysis: 'GB/T 3608 规定，坠落高度基准面 2 米及以上即属高处作业。', enabled: true },
+  { no: 10, category: '安全生产', title: '有限空间作业前必须进行的首要工作是？', options: { A: '办理审批', B: '准备工具', C: '通风换气与气体检测', D: '穿戴劳保用品' }, answer: 'C', analysis: '先通风、再检测、后作业，是有限空间作业的铁律。', enabled: true },
+  { no: 11, category: '安全生产', title: '事故隐患排查治理的责任主体是？', options: { A: '安全监管部门', B: '行业协会', C: '生产经营单位', D: '保险公司' }, answer: 'C', analysis: '生产经营单位是事故隐患排查、治理和防控的责任主体。', enabled: true },
+  { no: 12, category: '安全生产', title: '"三违"行为是指？', options: { A: '违规操作、违规用车、违规用电', B: '违法、违纪、违规', C: '违反合同、制度、流程', D: '违章指挥、违章作业、违反劳动纪律' }, answer: 'D', analysis: '"三违"即违章指挥、违章作业、违反劳动纪律。', enabled: true },
+  { no: 13, category: '安全生产', title: '发生生产安全事故后，单位负责人应在（ ）内上报。', options: { A: '30 分钟', B: '1 小时', C: '2 小时', D: '24 小时' }, answer: 'B', analysis: '《生产安全事故报告和调查处理条例》规定 1 小时内如实报告。', enabled: true },
+  { no: 14, category: '安全生产', title: '安全带的正确挂扣方式是？', options: { A: '低挂高用', B: '高挂低用', C: '平挂平用', D: '随意挂扣' }, answer: 'B', analysis: '安全带应高挂低用，挂在牢固的构件上，防止坠落冲击距离过大。', enabled: true },
+  { no: 15, category: '安全生产', title: '电气设备着火时，首先应该？', options: { A: '用水灭火', B: '呼救撤离', C: '用泡沫灭火器', D: '切断电源' }, answer: 'D', analysis: '电气火灾必须先切断电源，再使用干粉或二氧化碳灭火器。', enabled: true },
+  { no: 16, category: '安全生产', title: '生产安全事故等级中，死亡 3 人以上 10 人以下属于？', options: { A: '较大事故', B: '一般事故', C: '重大事故', D: '特别重大事故' }, answer: 'A', analysis: '较大事故：死亡 3–9 人，或重伤 10–49 人，或直接经济损失 1000 万–5000 万。', enabled: true },
+  { no: 17, category: '安全生产', title: '机械设备转动部位必须设置？', options: { A: '防护罩', B: '警示标语', C: '照明灯', D: '操作规程牌' }, answer: 'A', analysis: '转动、传动部位必须安装防护罩或防护栏，做到"有轴必有套、有轮必有罩"。', enabled: true },
+  { no: 18, category: '安全生产', title: '安全生产"四不放过"原则不包括？', options: { A: '事故原因未查清不放过', B: '整改资金未到位不放过', C: '责任人未处理不放过', D: '有关人员未受教育不放过' }, answer: 'B', analysis: '四不放过：原因未查清、责任人未处理、整改措施未落实、有关人员未受教育。', enabled: true },
+  { no: 19, category: '安全生产', title: '作业现场"5S"管理中"整顿"的含义是？', options: { A: '清除无用物品', B: '清扫干净', C: '物品定位摆放、取用方便', D: '养成习惯' }, answer: 'C', analysis: '整理（去留）、整顿（定位）、清扫（清洁）、清洁（标准化）、素养（习惯）。', enabled: true },
+  { no: 20, category: '安全生产', title: '动火作业前必须办理？', options: { A: '请假条', B: '用电申请', C: '动火作业许可证', D: '出入库单' }, answer: 'C', analysis: '动火作业实行许可管理，需办理动火证并落实监护人与灭火措施。', enabled: true },
+  { no: 21, category: '安全生产', title: '从业人员有权拒绝？', options: { A: '加班安排', B: '安全培训', C: '岗位调动', D: '违章指挥和强令冒险作业' }, answer: 'D', analysis: '《安全生产法》第五十四条赋予从业人员拒绝违章指挥与强令冒险作业的权利。', enabled: true },
+  { no: 22, category: '安全生产', title: '职业病防治工作坚持的方针是？', options: { A: '单位负责、政府监管', B: '治疗为主、预防为辅', C: '综合治理、分类管理', D: '预防为主、防治结合' }, answer: 'D', analysis: '《职业病防治法》确立"预防为主、防治结合"的方针。', enabled: true },
+  { no: 23, category: '安全生产', title: '使用手持电动工具时应优先选用？', options: { A: 'I 类工具', B: '任意工具', C: 'II 类或 III 类工具', D: '自制工具' }, answer: 'C', analysis: 'II 类（双重绝缘）与 III 类（安全特低电压）工具安全性更高，潮湿场所尤其适用。', enabled: true },
+  { no: 24, category: '安全生产', title: '企业应急预案演练频次要求是？', options: { A: '每年至少 1 次', B: '每季度至少 1 次', C: '每半年至少 1 次', D: '每两年 1 次' }, answer: 'C', analysis: '综合或专项应急预案演练每年至少 1 次，现场处置方案演练每半年至少 1 次。', enabled: true },
+  { no: 25, category: '安全生产', title: '危险化学品储存应遵循的原则是？', options: { A: '混合存放节省空间', B: '就近堆放', C: '分类分区、禁忌物隔离', D: '露天存放' }, answer: 'C', analysis: '危化品须分类分区储存，性质相抵触、灭火方法不同的物品禁止混存。', enabled: true },
+  { no: 26, category: '安全生产', title: '噪声作业场所 8 小时等效声级限值是？', options: { A: '85 dB', B: '80 dB', C: '70 dB', D: '90 dB' }, answer: 'A', analysis: 'GBZ 2.2 规定每周 5 天、每天 8 小时的噪声限值为 85 dB(A)。', enabled: true },
+  { no: 27, category: '安全生产', title: '起重作业中"十不吊"不包括？', options: { A: '指挥信号不明不吊', B: '天气晴朗不吊', C: '吊物上有人不吊', D: '安全装置失灵不吊' }, answer: 'B', analysis: '"十不吊"针对信号不明、超载、斜拉、吊物站人、装置失灵等危险情形。', enabled: true },
+  { no: 28, category: '安全生产', title: '安全标志中，警告标志的几何形状是？', options: { A: '正三角形', B: '圆形', C: '正方形', D: '菱形' }, answer: 'A', analysis: '警告标志为黄底黑边黑图案的正三角形。', enabled: true },
+  { no: 29, category: '安全生产', title: '进入施工现场必须佩戴？', options: { A: '耳机', B: '墨镜', C: '安全帽', D: '手表' }, answer: 'C', analysis: '进入施工现场必须正确佩戴安全帽并系紧下颌带。', enabled: true },
+  { no: 30, category: '安全生产', title: '安全生产责任制的核心是？', options: { A: '领导负责', B: '安全员负责', C: '人人有责、各负其责', D: '政府负责' }, answer: 'C', analysis: '安全生产责任制要求横向到边、纵向到底，全员覆盖。', enabled: true },
+
+  /* ---------- 消防安全 ---------- */
+  { no: 31, category: '消防安全', title: '我国消防工作的方针是？', options: { A: '扑救为主', B: '预防为主、防消结合', C: '安全第一', D: '综合治理' }, answer: 'B', analysis: '《消防法》第二条规定消防工作贯彻预防为主、防消结合的方针。', enabled: true },
+  { no: 32, category: '消防安全', title: '全国消防宣传日是每年的？', options: { A: '1 月 19 日', B: '11 月 9 日', C: '9 月 11 日', D: '5 月 12 日' }, answer: 'B', analysis: '11 月 9 日与火警电话 119 数字相合，定为全国消防日。', enabled: true },
+  { no: 33, category: '消防安全', title: '干粉灭火器压力表指针指向红区表示？', options: { A: '压力正常', B: '压力不足需充装', C: '压力过高', D: '可以正常使用' }, answer: 'B', analysis: '红区表示压力不足，绿区正常，黄区压力过高。', enabled: true },
+  { no: 34, category: '消防安全', title: '使用干粉灭火器时，应瞄准火焰的？', options: { A: '上部', B: '根部', C: '中部', D: '任意位置' }, answer: 'B', analysis: '对准火焰根部左右扫射，才能有效隔绝可燃物。', enabled: true },
+  { no: 35, category: '消防安全', title: '火灾中致人死亡的最主要原因是？', options: { A: '吸入有毒烟气窒息', B: '烧伤', C: '踩踏', D: '坠落' }, answer: 'A', analysis: '统计表明火灾死亡中约 70%–80% 死于烟气中毒与窒息。', enabled: true },
+  { no: 36, category: '消防安全', title: '发生火灾时，正确的逃生姿势是？', options: { A: '弯腰低姿、湿毛巾捂口鼻', B: '直立快跑', C: '原地等待', D: '乘电梯下楼' }, answer: 'A', analysis: '烟气向上聚集，应弯腰低姿前行并用湿毛巾捂住口鼻。', enabled: true },
+  { no: 37, category: '消防安全', title: '室内消火栓的水带长度一般为？', options: { A: '25 米', B: '20 米', C: '10 米', D: '50 米' }, answer: 'A', analysis: '室内消火栓配备的水带长度通常为 25 米。', enabled: true },
+  { no: 38, category: '消防安全', title: '火灾初起阶段（3 分钟内）的最佳处置是？', options: { A: '立即逃离不管', B: '使用灭火器材扑救并报警', C: '打开门窗通风', D: '收拾贵重物品' }, answer: 'B', analysis: '初起火灾火势小、蔓延慢，是扑救的最佳时机。', enabled: true },
+  { no: 39, category: '消防安全', title: '疏散通道和安全出口必须？', options: { A: '保持畅通，严禁占用封堵', B: '可以临时堆放物品', C: '上锁管理', D: '仅在检查时打开' }, answer: 'A', analysis: '疏散通道、安全出口必须保持畅通，严禁占用、堵塞、封闭。', enabled: true },
+  { no: 40, category: '消防安全', title: '身上着火时正确的做法是？', options: { A: '快速奔跑', B: '用手拍打', C: '就地打滚或用厚重衣物压灭', D: '跳入水中' }, answer: 'C', analysis: '奔跑会助燃，应就地打滚或用厚重衣物覆盖压灭火苗。', enabled: true },
+  { no: 41, category: '消防安全', title: '消防应急照明灯的连续供电时间不应少于？', options: { A: '10 分钟', B: '30 分钟', C: '20 分钟', D: '60 分钟' }, answer: 'B', analysis: '消防应急照明连续供电时间一般不少于 30 分钟。', enabled: true },
+  { no: 42, category: '消防安全', title: '我国火警电话是？', options: { A: '110', B: '122', C: '120', D: '119' }, answer: 'D', analysis: '火警 119，匪警 110，急救 120，交通事故 122。', enabled: true },
+  { no: 43, category: '消防安全', title: '灭火的基本方法不包括？', options: { A: '冷却法', B: '窒息法', C: '隔离法', D: '稀释法' }, answer: 'D', analysis: '基本方法为冷却、窒息、隔离、化学抑制四种。', enabled: true },
+  { no: 44, category: '消防安全', title: '办公室电器长期不拔插头的主要风险是？', options: { A: '浪费电能', B: '缩短设备寿命', C: '影响网速', D: '待机发热引发火灾' }, answer: 'D', analysis: '长期通电待机会使元件发热老化，是常见火灾诱因。', enabled: true },
+  { no: 45, category: '消防安全', title: '防火门的正常状态应该是？', options: { A: '常闭（或常开式火灾时自动关闭）', B: '常开', C: '拆除', D: '上锁' }, answer: 'A', analysis: '常闭防火门应保持关闭；常开防火门须在火灾时联动关闭。', enabled: true },
+  { no: 46, category: '消防安全', title: '扑救带电设备火灾应选用？', options: { A: '泡沫灭火器', B: '清水灭火器', C: '沙土', D: '二氧化碳或干粉灭火器' }, answer: 'D', analysis: '二氧化碳与干粉灭火剂不导电，适用于带电设备火灾。', enabled: true },
+  { no: 47, category: '消防安全', title: '消防车通道的净宽和净高不应小于？', options: { A: '2 米', B: '3 米', C: '6 米', D: '4 米' }, answer: 'D', analysis: '消防车通道净宽与净高均不应小于 4 米。', enabled: true },
+  { no: 48, category: '消防安全', title: '高层建筑发生火灾时，正确的做法是？', options: { A: '乘电梯逃生', B: '躲进电梯间', C: '通过疏散楼梯向下或到避难层', D: '跳楼' }, answer: 'C', analysis: '火灾时严禁乘电梯，应走疏散楼梯，无法下行时进入避难层或上屋顶待援。', enabled: true },
+  { no: 49, category: '消防安全', title: '烟感探测器的工作机理是探测？', options: { A: '温度升高', B: '火焰光波', C: '烟雾颗粒', D: '气体浓度' }, answer: 'C', analysis: '感烟探测器通过光电或离子方式探测烟雾颗粒。', enabled: true },
+  { no: 50, category: '消防安全', title: 'ABC 干粉灭火器中的 "A" 类火灾指？', options: { A: '固体物质火灾', B: '液体火灾', C: '气体火灾', D: '金属火灾' }, answer: 'A', analysis: 'A 类固体、B 类液体或可熔固体、C 类气体、D 类金属、E 类带电、F 类烹饪物。', enabled: true },
+  { no: 51, category: '消防安全', title: '消防演练中发现灭火器失效应？', options: { A: '自行丢弃', B: '挪作他用', C: '继续使用', D: '登记上报并及时更换' }, answer: 'D', analysis: '灭火器材须定期检查，失效的应立即上报更换并留下记录。', enabled: true },
+  { no: 52, category: '消防安全', title: '安全出口指示标志应设置在？', options: { A: '地面中央', B: '距地面 1 米以下的墙面或地面', C: '天花板正中', D: '门后' }, answer: 'B', analysis: '低位设置是因为火灾时烟气在上层，低位标志更易辨识。', enabled: true },
+  { no: 53, category: '消防安全', title: '电气线路老化的主要隐患是？', options: { A: '电压不稳', B: '耗电增加', C: '绝缘破损导致短路起火', D: '信号干扰' }, answer: 'C', analysis: '绝缘层老化破损会造成短路、漏电、电弧，引发火灾。', enabled: true },
+  { no: 54, category: '消防安全', title: '消防控制室值班要求是？', options: { A: '24 小时双人持证值班', B: '8 小时有人', C: '工作日有人', D: '远程监控即可' }, answer: 'A', analysis: '消防控制室须 24 小时值班，每班不少于 2 人且持证上岗。', enabled: true },
+  { no: 55, category: '消防安全', title: '燃气泄漏时，错误的处置是？', options: { A: '开关电器或使用明火', B: '关闭阀门开窗通风', C: '到户外拨打电话', D: '不要按动门铃' }, answer: 'A', analysis: '燃气泄漏时严禁开关任何电器与明火，避免电火花引爆。', enabled: true },
+  { no: 56, category: '消防安全', title: '防火分区的作用是？', options: { A: '美化建筑', B: '方便管理', C: '控制火势蔓延范围', D: '节省建材' }, answer: 'C', analysis: '防火分区通过防火墙、防火门等把火势限制在一定区域内。', enabled: true },
+  { no: 57, category: '消防安全', title: '灭火器压力表指针在绿区表示？', options: { A: '压力不足', B: '已失效', C: '压力过高', D: '压力正常' }, answer: 'D', analysis: '绿区为正常工作压力范围。', enabled: true },
+  { no: 58, category: '消防安全', title: '单位应当至少（ ）组织一次防火检查。', options: { A: '每年', B: '每季度', C: '每半年', D: '每月' }, answer: 'D', analysis: '机关、团体、事业单位应至少每季度一次，企业至少每月一次防火检查。', enabled: true },
+  { no: 59, category: '消防安全', title: '泡沫灭火器不适用于扑救？', options: { A: '带电设备火灾', B: '油类火灾', C: '固体物质火灾', D: '木材火灾' }, answer: 'A', analysis: '泡沫含水导电，不能用于带电设备火灾。', enabled: true },
+  { no: 60, category: '消防安全', title: '拨打火警电话时应说明的内容不包括？', options: { A: '起火地点与燃烧物', B: '火势大小与有无人员被困', C: '报警人姓名与电话', D: '个人身份证号码' }, answer: 'D', analysis: '报警要点：地点、燃烧物、火势、人员被困情况、报警人联系方式。', enabled: true },
+
+  /* ---------- 职业健康 ---------- */
+  { no: 61, category: '职业健康', title: '职业病是指劳动者在（ ）中接触有害因素引起的疾病。', options: { A: '日常生活', B: '休假期间', C: '通勤途中', D: '职业活动' }, answer: 'D', analysis: '职业病是在职业活动中因接触粉尘、放射性物质和其他有毒有害因素而引起的疾病。', enabled: true },
+  { no: 62, category: '职业健康', title: '我国法定职业病分为（ ）大类。', options: { A: '8 类', B: '12 类', C: '10 类', D: '15 类' }, answer: 'C', analysis: '《职业病分类和目录》将法定职业病分为 10 大类 132 种。', enabled: true },
+  { no: 63, category: '职业健康', title: '用人单位应为接触职业病危害的劳动者建立？', options: { A: '职业健康监护档案', B: '工资档案', C: '考勤档案', D: '绩效档案' }, answer: 'A', analysis: '《职业病防治法》要求建立职业健康监护档案并妥善保存。', enabled: true },
+  { no: 64, category: '职业健康', title: '职业健康监护包括上岗前、在岗期间和？', options: { A: '离岗时体检', B: '年度旅游', C: '家属体检', D: '入职体检' }, answer: 'A', analysis: '职业健康检查分上岗前、在岗期间、离岗时三类。', enabled: true },
+  { no: 65, category: '职业健康', title: '尘肺病的主要致病因素是？', options: { A: '噪声', B: '振动', C: '高温', D: '长期吸入生产性粉尘' }, answer: 'D', analysis: '尘肺是长期吸入生产性矿物性粉尘并在肺内潴留所致。', enabled: true },
+  { no: 66, category: '职业健康', title: '防尘综合措施中"八字方针"是？', options: { A: '控、监、测、评、防、护、救、报', B: '防、治、管、教、查、改、建、控', C: '*、扫、洒、通、戴、查、训、记', D: '革、水、密、风、护、管、教、查' }, answer: 'D', analysis: '防尘八字方针：革、水、密、风、护、管、教、查。', enabled: true },
+  { no: 67, category: '职业健康', title: '长时间佩戴耳塞是为了预防？', options: { A: '职业性噪声聋', B: '尘肺', C: '近视', D: '皮肤病' }, answer: 'A', analysis: '噪声作业场所必须佩戴防噪耳塞或耳罩。', enabled: true },
+  { no: 68, category: '职业健康', title: '高温作业是指工作地点平均 WBGT 指数？', options: { A: '≥25℃', B: '≥30℃', C: '≥35℃', D: '≥40℃' }, answer: 'A', analysis: 'WBGT 指数 ≥25℃ 的作业即属高温作业。', enabled: true },
+  { no: 69, category: '职业健康', title: '中暑先兆的表现不包括？', options: { A: '皮肤干热无汗、意识模糊', B: '头晕、注意力不集中', C: '体温正常或略高', D: '大量出汗、口渴' }, answer: 'A', analysis: '皮肤干热无汗、意识模糊属重症中暑（热射病）表现。', enabled: true },
+  { no: 70, category: '职业健康', title: '用人单位不得安排（ ）从事接触职业病危害的作业。', options: { A: '女职工', B: '实习生', C: '劳务派遣工', D: '未成年工' }, answer: 'D', analysis: '用人单位不得安排未成年工从事接触职业病危害的作业。', enabled: true },
+  { no: 71, category: '职业健康', title: '职业健康检查费用由谁承担？', options: { A: '用人单位', B: '劳动者个人', C: '医保基金', D: '政府补贴' }, answer: 'A', analysis: '职业健康检查费用由用人单位承担。', enabled: true },
+  { no: 72, category: '职业健康', title: '职业病危害告知不包括？', options: { A: '劳动合同告知', B: '警示标识告知', C: '培训告知', D: '竞争对手告知' }, answer: 'D', analysis: '告知方式包括合同、公告栏、警示标识、培训与体检结果告知。', enabled: true },
+  { no: 73, category: '职业健康', title: '长时间伏案工作应每隔多久活动一次？', options: { A: '30 分钟', B: '2 小时', C: '1 小时', D: '4 小时' }, answer: 'C', analysis: '建议每工作 1 小时起身活动 5–10 分钟，预防肌肉骨骼损伤。', enabled: true },
+  { no: 74, category: '职业健康', title: '工作场所采光照明不足容易导致？', options: { A: '听力下降', B: '皮肤病', C: '视力疲劳与近视', D: '高血压' }, answer: 'C', analysis: '照度不足会引起视疲劳、眼干涩，长期可致视力下降。', enabled: true },
+  { no: 75, category: '职业健康', title: '用人单位应当在产生职业病危害的岗位设置？', options: { A: '警示标识与中文警示说明', B: '考勤机', C: '监控摄像头', D: '宣传海报' }, answer: 'A', analysis: '《职业病防治法》要求设置警示标识和中文警示说明。', enabled: true },
+  { no: 76, category: '职业健康', title: '职业性苯中毒主要损害？', options: { A: '呼吸系统', B: '造血系统', C: '消化系统', D: '运动系统' }, answer: 'B', analysis: '苯主要损害造血系统，可致白细胞减少、再生障碍性贫血甚至白血病。', enabled: true },
+  { no: 77, category: '职业健康', title: '使用有机溶剂作业时应佩戴？', options: { A: '棉纱口罩', B: '安全帽', C: '普通纱布手套', D: '防毒半面罩（配有机气体滤毒盒）' }, answer: 'D', analysis: '有机溶剂蒸气需使用配备有机气体滤毒盒的防毒面具。', enabled: true },
+  { no: 78, category: '职业健康', title: '职业健康监护档案的保存期限是？', options: { A: '离职后 1 年', B: '离职后 3 年', C: '永久保存', D: '劳动者离开用人单位后至少 30 年' }, answer: 'D', analysis: '监护档案应在劳动者离职后至少保存 30 年（部分地区要求终身保存）。', enabled: true },
+  { no: 79, category: '职业健康', title: '用人单位对疑似职业病病人应当？', options: { A: '直接辞退', B: '及时安排诊断，诊断期间不得解除劳动合同', C: '调岗降薪', D: '要求其自行就医' }, answer: 'B', analysis: '《职业病防治法》第五十五条规定，诊断或医学观察期间不得解除或终止劳动合同。', enabled: true },
+  { no: 80, category: '职业健康', title: '工作场所职业病危害因素检测至少？', options: { A: '每月 1 次', B: '每三年 1 次', C: '每两年 1 次', D: '每年 1 次' }, answer: 'D', analysis: '职业病危害严重的用人单位应每年至少检测 1 次，每三年至少做 1 次现状评价。', enabled: true },
+  { no: 81, category: '职业健康', title: '工效学伤害主要指？', options: { A: '化学中毒', B: '尘肺', C: '肌肉骨骼损伤', D: '中暑' }, answer: 'C', analysis: '不良作业姿势、重复动作、重体力搬运会导致肌肉骨骼损伤。', enabled: true },
+  { no: 82, category: '职业健康', title: '搬运重物时正确的姿势是？', options: { A: '弯腰直接提起', B: '猛然发力', C: '屈膝下蹲、腰部挺直、靠近身体', D: '扭腰转身搬运' }, answer: 'C', analysis: '正确姿势为屈膝下蹲、腰背挺直、重物贴近身体，避免腰部扭伤。', enabled: true },
+  { no: 83, category: '职业健康', title: '职业紧张（工作压力）可能导致的健康问题是？', options: { A: '近视', B: '骨折', C: '心血管疾病与心理障碍', D: '龋齿' }, answer: 'C', analysis: '长期职业紧张与高血压、冠心病、焦虑抑郁相关。', enabled: true },
+  { no: 84, category: '职业健康', title: '用人单位发现职业病病人应报告至？', options: { A: '税务部门', B: '工商部门', C: '所在地卫生行政部门与劳动保障部门', D: '行业协会' }, answer: 'C', analysis: '确诊职业病后应向所在地卫生行政部门和劳动保障部门报告。', enabled: true },
+  { no: 85, category: '职业健康', title: '劳动者享有职业卫生保护权利，不包括？', options: { A: '获得职业卫生教育、培训', B: '拒绝违章指挥和强令冒险作业', C: '要求用人单位改善工作条件', D: '无条件要求调换岗位' }, answer: 'D', analysis: '调岗需基于职业禁忌证等合理理由，不是无条件权利。', enabled: true },
+  { no: 86, category: '职业健康', title: '紫外辐射作业应重点防护？', options: { A: '听力', B: '眼睛与皮肤', C: '呼吸道', D: '关节' }, answer: 'B', analysis: '紫外线可致电光性眼炎与皮肤灼伤，需佩戴防护面罩与防护服。', enabled: true },
+  { no: 87, category: '职业健康', title: '工作场所应设置的生活卫生设施不包括？', options: { A: '更衣室', B: '洗浴间（必要时）', C: '娱乐场所', D: '休息室' }, answer: 'C', analysis: '应设置更衣、洗浴、休息、就餐等辅助用室，娱乐场所非必需。', enabled: true },
+  { no: 88, category: '职业健康', title: '职业禁忌证是指？', options: { A: '遗传病', B: '所有慢性病', C: '传染病', D: '劳动者不宜从事的疾病或生理状态' }, answer: 'D', analysis: '职业禁忌证指劳动者从事特定职业或接触特定危害因素时更易受害的个体状态。', enabled: true },
+  { no: 89, category: '职业健康', title: '手部接触强酸后应？', options: { A: '立即用大量流动清水冲洗 15 分钟以上', B: '用碱液中和', C: '用布擦拭', D: '涂抹药膏' }, answer: 'A', analysis: '化学灼伤首要处置是大量流动清水冲洗至少 15 分钟。', enabled: true },
+  { no: 90, category: '职业健康', title: '职业病诊断应由（ ）承担。', options: { A: '取得资质的职业病诊断机构', B: '任意医院', C: '社区卫生服务中心', D: '用人单位医务室' }, answer: 'A', analysis: '职业病诊断须由省级以上卫生行政部门批准的医疗卫生机构承担。', enabled: true },
+
+  /* ---------- 信息安全 ---------- */
+  { no: 91, category: '信息安全', title: '下列密码中强度最高的是？', options: { A: 'Ks9#mQ2!xL', B: 'abc123', C: '123456', D: '公司名+2026' }, answer: 'A', analysis: '长度 ≥10 位、含大小写字母、数字与特殊字符且无规律的密码强度最高。', enabled: true },
+  { no: 92, category: '信息安全', title: '收到"财务总监"要求紧急转账的邮件，正确的做法是？', options: { A: '立即转账', B: '不予理会也不核实', C: '转发给同事', D: '通过电话或当面二次确认后再处理' }, answer: 'D', analysis: '这是典型的商务邮件欺诈（BEC），必须通过独立渠道二次核实。', enabled: true },
+  { no: 93, category: '信息安全', title: '钓鱼邮件最常见的识别特征是？', options: { A: '邮件有公司 logo', B: '发件人域名异常、内容制造紧迫感、附带可疑链接', C: '邮件有附件', D: '邮件在上班时间收到' }, answer: 'B', analysis: '域名仿冒、制造紧急氛围、诱导点击链接是钓鱼邮件的三大特征。', enabled: true },
+  { no: 94, category: '信息安全', title: '离开工位时，电脑应该？', options: { A: '锁定屏幕（Win+L）', B: '保持原样', C: '关机', D: '盖上显示器' }, answer: 'A', analysis: '离开工位必须锁屏，Windows 快捷键 Win+L。', enabled: true },
+  { no: 95, category: '信息安全', title: '办公电脑安装软件的正确做法是？', options: { A: '从任意网站下载', B: '让同事拷贝', C: '使用破解版', D: '通过公司软件中心或经 IT 审批后安装' }, answer: 'D', analysis: '未经授权的软件可能携带木马，须走正规渠道安装。', enabled: true },
+  { no: 96, category: '信息安全', title: '公司涉密文件外发前应当？', options: { A: '直接发送', B: '发到个人邮箱', C: '按密级履行审批并加密传输', D: '用微信发送' }, answer: 'C', analysis: '涉密文件外发须履行审批流程，并采用加密或受控通道传输。', enabled: true },
+  { no: 97, category: '信息安全', title: '两因素认证（2FA）的作用是？', options: { A: '提高登录速度', B: '自动记住密码', C: '减少密码长度', D: '即使密码泄露也能阻止未授权登录' }, answer: 'D', analysis: '2FA 在密码之外增加第二重验证，显著降低账号被盗风险。', enabled: true },
+  { no: 98, category: '信息安全', title: '连接公共 Wi-Fi 处理公司业务的正确做法是？', options: { A: '直接连接使用', B: '关闭防火墙', C: '使用公司 VPN 加密通道', D: '使用手机热点即可不加防护' }, answer: 'C', analysis: '公共 Wi-Fi 存在中间人攻击风险，处理公司业务应走 VPN。', enabled: true },
+  { no: 99, category: '信息安全', title: '发现电脑中毒后的第一步是？', options: { A: '自行格式化', B: '重启即可', C: '继续使用观察', D: '断网隔离并立即报告 IT' }, answer: 'D', analysis: '先断开网络防止横向扩散，再报告 IT 部门处置。', enabled: true },
+  { no: 100, category: '信息安全', title: 'U 盘等移动介质的使用规范是？', options: { A: '随意借用', B: '专盘专用、接入前查杀病毒、涉密介质不外带', C: '个人与公司混用', D: '不需要管理' }, answer: 'B', analysis: '移动介质是病毒与泄密的主要载体，须专盘专用并先查杀。', enabled: true },
+  { no: 101, category: '信息安全', title: '《数据安全法》将数据分为？', options: { A: '一般数据、重要数据、核心数据', B: '公开与秘密两类', C: '内部与外部两类', D: '一级至五级' }, answer: 'A', analysis: '国家建立数据分类分级保护制度，分为一般、重要、核心数据。', enabled: true },
+  { no: 102, category: '信息安全', title: '个人信息处理的基本原则不包括？', options: { A: '合法、正当、必要', B: '目的明确与最小够用', C: '公开透明', D: '尽可能多采集' }, answer: 'D', analysis: '《个人信息保护法》强调最小必要原则，禁止过度收集。', enabled: true },
+  { no: 103, category: '信息安全', title: '勒索软件的主要危害是？', options: { A: '加密文件并索要赎金', B: '仅弹出广告', C: '降低网速', D: '篡改桌面背景' }, answer: 'A', analysis: '勒索软件加密用户文件并勒索赎金，关键在于做好离线备份。', enabled: true },
+  { no: 104, category: '信息安全', title: '防范勒索软件最有效的措施是？', options: { A: '安装杀毒软件即可', B: '定期离线备份 + 及时打补丁 + 不点可疑链接', C: '重装系统', D: '断网使用' }, answer: 'B', analysis: '纵深防御：备份、补丁、人员意识三者缺一不可。', enabled: true },
+  { no: 105, category: '信息安全', title: '办公邮箱密码应？', options: { A: '长期使用不更换', B: '定期更换且与其他系统不重复', C: '告知同事备用', D: '写在便签上' }, answer: 'B', analysis: '密码应定期更换，且不同系统不得复用同一密码。', enabled: true },
+  { no: 106, category: '信息安全', title: '社交工程攻击的本质是？', options: { A: '利用技术漏洞入侵', B: '物理破坏设备', C: '暴力破解密码', D: '利用人的心理弱点骗取信息' }, answer: 'D', analysis: '社交工程攻击针对人性弱点（信任、恐惧、贪婪）而非技术漏洞。', enabled: true },
+  { no: 107, category: '信息安全', title: '废弃的纸质涉密文件应当？', options: { A: '扔进普通垃圾桶', B: '带回家', C: '卖给废品站', D: '使用碎纸机销毁' }, answer: 'D', analysis: '涉密纸质文件必须用碎纸机销毁，不得随意丢弃。', enabled: true },
+  { no: 108, category: '信息安全', title: '公司数据备份的"3-2-1"原则指？', options: { A: '3 个管理员、2 台服务器、1 个机房', B: '3 天一次、2 份、1 个硬盘', C: '3 份数据、2 种介质、1 份异地', D: '3 个月、2 次、1 份' }, answer: 'C', analysis: '3 份副本、2 种不同介质、1 份异地（离线）保存。', enabled: true },
+  { no: 109, category: '信息安全', title: '在社交媒体上发布信息时，不应？', options: { A: '分享个人生活', B: '转发官方新闻', C: '泄露公司未公开项目、内网截图、工牌信息', D: '发布活动照片' }, answer: 'C', analysis: '工牌、内网界面、未公开项目都属于可被利用的情报。', enabled: true },
+  { no: 110, category: '信息安全', title: '操作系统提示有安全更新时应该？', options: { A: '忽略', B: '及时安装', C: '等半年再装', D: '关闭更新' }, answer: 'B', analysis: '安全补丁修复已知漏洞，应及时安装。', enabled: true },
+  { no: 111, category: '信息安全', title: '二维码的安全风险是？', options: { A: '没有风险', B: '可能指向钓鱼网站或触发恶意下载', C: '仅会消耗流量', D: '会导致手机发热' }, answer: 'B', analysis: '恶意二维码可能诱导跳转钓鱼页面或自动下载木马。', enabled: true },
+  { no: 112, category: '信息安全', title: '员工离职时，公司应？', options: { A: '及时回收账号权限并交接数据', B: '保留其全部账号', C: '仅收回门禁', D: '不做处理' }, answer: 'A', analysis: '离职应及时停用账号、回收权限、交接并审计数据。', enabled: true },
+  { no: 113, category: '信息安全', title: '关于云盘存储公司文件，正确的是？', options: { A: '任意公有云盘均可', B: '使用公司批准的云盘并遵守密级规定', C: '用个人网盘更方便', D: '禁止使用一切云盘' }, answer: 'B', analysis: '须使用公司批准的云服务，涉密文件不得上传公共云盘。', enabled: true },
+  { no: 114, category: '信息安全', title: '接到自称"IT 部门"索要密码的电话，应？', options: { A: '如实告知', B: '拒绝并挂断后通过官方渠道核实', C: '告知部分密码', D: '让对方自己查' }, answer: 'B', analysis: '正规 IT 部门不会索要密码，此类电话一律视为可疑。', enabled: true },
+  { no: 115, category: '信息安全', title: '多因素认证中不属于"持有因素"的是？', options: { A: '指纹', B: '硬件令牌', C: '手机验证码', D: '门禁卡' }, answer: 'A', analysis: '指纹属于"固有因素"（生物特征），非持有因素。', enabled: true },
+  { no: 116, category: '信息安全', title: '信息系统账号权限分配应遵循？', options: { A: '最大权限原则', B: '平均分配', C: '最小权限原则', D: '按需申请后永久保留' }, answer: 'C', analysis: '最小权限原则：只授予完成工作所必需的最小权限，并定期复核。', enabled: true },
+  { no: 117, category: '信息安全', title: '数据脱敏的目的是？', options: { A: '提高数据精度', B: '压缩数据体积', C: '在保留可用性的同时消除敏感信息', D: '加快传输速度' }, answer: 'C', analysis: '脱敏通过遮蔽、替换等方式去除个人敏感信息，兼顾可用与安全。', enabled: true },
+  { no: 118, category: '信息安全', title: '公司终端接入内网通常要求？', options: { A: '无需管控', B: '仅登记即可', C: '安装终端管控软件并通过合规检查', D: '使用个人设备' }, answer: 'C', analysis: '入网终端须安装管控软件、开启杀毒并通过安全基线检查。', enabled: true },
+  { no: 119, category: '信息安全', title: '发生数据泄露事件后，企业应当在规定时限内？', options: { A: '隐瞒不报', B: '按规定向监管部门报告并通知受影响个人', C: '仅内部处理', D: '等待舆论平息' }, answer: 'B', analysis: '《数据安全法》《个人信息保护法》均要求及时报告与通知。', enabled: true },
+  { no: 120, category: '信息安全', title: '下列哪项不属于良好的信息安全习惯？', options: { A: '定期更换密码', B: '及时锁屏', C: '开启系统更新', D: '多个系统使用同一密码便于记忆' }, answer: 'D', analysis: '密码复用会导致"一点破、全线破"，是高危习惯。', enabled: true },
+
+  /* ---------- 公司制度 ---------- */
+  { no: 121, category: '公司制度', title: '员工应于每月（ ）前完成上月考勤确认。', options: { A: '1 日', B: '3 日', C: '5 日', D: '10 日' }, answer: 'B', analysis: '公司考勤管理制度规定每月 3 日前完成确认。', enabled: true },
+  { no: 122, category: '公司制度', title: '员工请假 3 天以上应提前（ ）提交申请。', options: { A: '1 个工作日', B: '3 个工作日', C: '5 个工作日', D: '7 个工作日' }, answer: 'B', analysis: '3 天以上假期需提前 3 个工作日走审批流程。', enabled: true },
+  { no: 123, category: '公司制度', title: '年假未休完的处理方式通常是？', options: { A: '按公司制度结转至次年或折算工资', B: '自动作废', C: '不可结转', D: '累计永久有效' }, answer: 'A', analysis: '具体结转规则依公司制度执行，一般有截止期限。', enabled: true },
+  { no: 124, category: '公司制度', title: '员工报销单据应在费用发生后（ ）内提交。', options: { A: '15 日', B: '60 日', C: '30 日', D: '90 日' }, answer: 'C', analysis: '费用报销应在发生后 30 日内提交，跨年度不予受理。', enabled: true },
+  { no: 125, category: '公司制度', title: '公司保密协议约定的保密期限通常是？', options: { A: '在职期间', B: '无期限要求', C: '仅离职后 1 年', D: '在职及离职后一定期限内' }, answer: 'D', analysis: '保密义务一般持续至离职后约定年限（常见 2–3 年）。', enabled: true },
+  { no: 126, category: '公司制度', title: '员工不得利用职务便利？', options: { A: '完成本职工作', B: '提出合理化建议', C: '参加公司培训', D: '收受供应商回扣或谋取不正当利益' }, answer: 'D', analysis: '廉洁自律是红线，收受回扣可能构成非国家工作人员受贿罪。', enabled: true },
+  { no: 127, category: '公司制度', title: '发现同事有违规违纪行为应当？', options: { A: '视而不见', B: '在群里传播', C: '通过合规渠道如实反映', D: '替其隐瞒' }, answer: 'C', analysis: '公司设有举报渠道，鼓励实名举报并保护举报人。', enabled: true },
+  { no: 128, category: '公司制度', title: '公司消防通道内严禁？', options: { A: '通行', B: '堆放杂物或停放车辆', C: '张贴标识', D: '安装照明' }, answer: 'B', analysis: '消防通道必须保持畅通，严禁占用、堵塞、封闭。', enabled: true },
+  { no: 129, category: '公司制度', title: '员工入职后应在（ ）内完成安全生产培训。', options: { A: '1 周', B: '1 个月', C: '3 个月', D: '6 个月' }, answer: 'B', analysis: '新员工须在入职 1 个月内完成三级安全教育并考核合格。', enabled: true },
+  { no: 130, category: '公司制度', title: '工作时间擅离岗位属于？', options: { A: '违反劳动纪律', B: '正常行为', C: '需部门批准即可', D: '不影响考核' }, answer: 'A', analysis: '擅离岗位违反劳动纪律，情节严重可依制度处分。', enabled: true },
+  { no: 131, category: '公司制度', title: '公司资产管理原则是？', options: { A: '谁使用谁负责', B: '统一采购、登记入账、责任到人', C: '部门自行管理', D: '个人保管' }, answer: 'B', analysis: '固定资产须统一采购、建账、贴标并落实保管责任人。', enabled: true },
+  { no: 132, category: '公司制度', title: '员工出差前应完成？', options: { A: '提交出差申请并获批准', B: '口头告知', C: '直接订票', D: '事后补办' }, answer: 'A', analysis: '出差须事前提交申请并完成审批，紧急情况可事后补办。', enabled: true },
+  { no: 133, category: '公司制度', title: '公司会议决议的执行原则是？', options: { A: '自由执行', B: '由办公室全部承担', C: '仅记录不跟踪', D: '谁牵头、谁负责、限时反馈' }, answer: 'D', analysis: '会议决议应明确责任人、完成时限并纳入督办。', enabled: true },
+  { no: 134, category: '公司制度', title: '员工个人信息变更（如手机号）应？', options: { A: '无需告知', B: '及时在人事系统更新', C: '告知同事即可', D: '年底统一更新' }, answer: 'B', analysis: '联系方式、银行卡等关键信息变更须及时更新，确保联络与发薪无误。', enabled: true },
+  { no: 135, category: '公司制度', title: '公司提倡的沟通原则是？', options: { A: '越级汇报优先', B: '逐级沟通、必要时越级', C: '不沟通', D: '仅书面沟通' }, answer: 'B', analysis: '一般事项逐级沟通，重大或紧急事项可越级直至高层。', enabled: true },
+  { no: 136, category: '公司制度', title: '办公区域节约用电要求是？', options: { A: '全天开灯', B: '无人时保持设备运行', C: '空调越低越好', D: '人走灯灭、空调设定合理温度' }, answer: 'D', analysis: '夏季空调不低于 26℃，离开时关闭灯具与设备电源。', enabled: true },
+  { no: 137, category: '公司制度', title: '员工离职应提前（ ）书面通知公司。', options: { A: '3 日', B: '30 日', C: '15 日', D: '60 日' }, answer: 'B', analysis: '《劳动合同法》规定转正后离职需提前 30 日书面通知。', enabled: true },
+  { no: 138, category: '公司制度', title: '公司印章使用的规定是？', options: { A: '保管人可自行决定', B: '任何人可借用', C: '须履行审批登记手续', D: '可带离公司' }, answer: 'C', analysis: '印章使用必须经审批并登记用印事由、份数与经办人。', enabled: true },
+  { no: 139, category: '公司制度', title: '公司档案借阅应？', options: { A: '直接取走', B: '办理借阅登记并限期归还', C: '拍照留存即可', D: '无需登记' }, answer: 'B', analysis: '档案借阅须登记、限期归还，涉密档案需专项审批。', enabled: true },
+  { no: 140, category: '公司制度', title: '员工在对外场合代表公司发言应？', options: { A: '随意表达个人观点', B: '以个人名义即可', C: '经授权并遵守对外口径管理规定', D: '转发未经核实的信息' }, answer: 'C', analysis: '对外发言实行归口管理，未经授权不得代表公司表态。', enabled: true },
+  { no: 141, category: '公司制度', title: '公司采购流程的第一步是？', options: { A: '直接联系供应商', B: '签订合同', C: '提交采购需求并完成预算审批', D: '付款' }, answer: 'C', analysis: '先有需求与预算审批，再进入询价、比价与合同环节。', enabled: true },
+  { no: 142, category: '公司制度', title: '供应商管理的核心要求是？', options: { A: '资质审查、履约评价与廉洁承诺', B: '价格最低即可', C: '长期合作免审', D: '关系优先' }, answer: 'A', analysis: '供应商须通过资质审查并签署廉洁协议，定期履约评价。', enabled: true },
+  { no: 143, category: '公司制度', title: '公司绩效考核周期通常是？', options: { A: '月度', B: '半年', C: '季度 + 年度', D: '不定期' }, answer: 'C', analysis: '多数企业采用季度考核与年度考核相结合的方式。', enabled: true },
+  { no: 144, category: '公司制度', title: '员工参加外部培训的费用处理是？', options: { A: '一律公司承担', B: '一律个人承担', C: '按培训协议约定，可能涉及服务期', D: '无需约定' }, answer: 'C', analysis: '专项培训可约定服务期与违约金，违约金不超过培训费用。', enabled: true },
+  { no: 145, category: '公司制度', title: '公司车辆使用应？', options: { A: '私人随意使用', B: '提前申请、登记里程、禁止私用', C: '谁有钥匙谁用', D: '无需记录' }, answer: 'B', analysis: '公务车辆须申请派车、登记使用记录，严禁公车私用。', enabled: true },
+  { no: 146, category: '公司制度', title: '员工健康体检的频次一般是？', options: { A: '每季度 1 次', B: '每年 1 次', C: '每两年 1 次', D: '不定期' }, answer: 'B', analysis: '公司一般每年组织一次全员健康体检，特殊岗位按法规加检。', enabled: true },
+  { no: 147, category: '公司制度', title: '公司质量管理体系方针是？', options: { A: '产量优先', B: '质量第一、持续改进、顾客满意', C: '成本优先', D: '速度优先' }, answer: 'B', analysis: '质量方针通常围绕质量优先、持续改进与顾客满意展开。', enabled: true },
+  { no: 148, category: '公司制度', title: '客户投诉处理的首要原则是？', options: { A: '推诿责任', B: '及时响应、先处理情绪再处理问题', C: '等待客户冷静', D: '转交他人' }, answer: 'B', analysis: '投诉处理强调首问负责、限时响应、闭环反馈。', enabled: true },
+  { no: 149, category: '公司制度', title: '公司合理化建议渠道是？', options: { A: '通过意见箱、提案系统或员工座谈会', B: '没有渠道', C: '仅向领导口头提', D: '外部媒体' }, answer: 'A', analysis: '公司设有合理化建议渠道并对采纳建议给予奖励。', enabled: true },
+  { no: 150, category: '公司制度', title: '本次答题抽奖活动的奖品领取方式是？', options: { A: '邮寄到家', B: '无需核销', C: '自动发放到工资', D: '凭工号与姓名到指定地点现场核销领取' }, answer: 'D', analysis: '奖品须本人凭工号与姓名现场核销，名单以后台记录为准。', enabled: true },
+];
+
+/* ============================================================
+ * 3. 奖品池  → prize 表
+ * 字段：level, name, total, remain, weight, sort
+ * ==========================================================*/
+const  PRIZES = [
+  { level: 1, name: '一等奖', desc: '智能手表', total: 5, remain: 5, weight: 0, sort: 1 },
+  { level: 2, name: '二等奖', desc: '蓝牙耳机', total: 50, remain: 50, weight: 0, sort: 2 },
+  { level: 3, name: '三等奖', desc: '定制保温杯', total: 100, remain: 100, weight: 0, sort: 3 }
+];
+
+/* ============================================================
+ * 4. 参与者  → participant 表
+ * 字段：name, empNo, openid, passed, passedAt, drawn, drawnAt
+ * ==========================================================*/
+const  PARTICIPANTS = [
+  { name: '张伟', empNo: 'A10086', openid: 'o-test-0001', passed: true, passedAt: '2026-09-05 09:12:30', drawn: true, drawnAt: '2026-09-05 09:13:05' },
+  { name: '李静', empNo: 'A10087', openid: 'o-test-0002', passed: true, passedAt: '2026-09-05 09:20:11', drawn: false, drawnAt: null },
+  { name: '王强', empNo: 'A10088', openid: 'o-test-0003', passed: false, passedAt: null, drawn: false, drawnAt: null },
+  { name: '刘芳', empNo: 'A10089', openid: 'o-test-0004', passed: true, passedAt: '2026-09-05 10:02:44', drawn: true, drawnAt: '2026-09-05 10:03:12' }
+];
+
+/* ============================================================
+ * 5. 中奖记录  → lottery_record 表
+ * 字段：name, empNo, level, prizeName, wonAt, remark
+ * ==========================================================*/
+const  LOTTERY_RECORDS = [
+  { name: '张伟', empNo: 'A10086', level: 3, prizeName: '三等奖 · 定制保温杯', wonAt: '2026-09-05 09:13:05', remark: '' },
+  { name: '刘芳', empNo: 'A10089', level: null, prizeName: null, wonAt: '2026-09-05 10:03:12', remark: '谢谢参与' }
+];
+
+/* ============================================================
+ * 6. 答题记录  → exam_record 表
+ * 字段：empNo, questionNos, answers, correctCount, passed, submittedAt
+ * ==========================================================*/
+const  EXAM_RECORDS = [
+  { empNo: 'A10086', questionNos: [3, 17, 42, 58, 71], answers: ['A', 'B', 'B', 'B', 'B'], correctCount: 4, passed: true, submittedAt: '2026-09-05 09:12:30' },
+  { empNo: 'A10086', questionNos: [1, 8, 22, 45, 63], answers: ['A', 'C', 'A', 'B', 'B'], correctCount: 5, passed: true, submittedAt: '2026-09-05 09:18:02' },
+  { empNo: 'A10088', questionNos: [5, 19, 33, 49, 66], answers: ['A', 'B', 'B', 'B', 'B'], correctCount: 2, passed: false, submittedAt: '2026-09-05 10:15:20' }
+];
+
+/* ============================================================
+ * 7. 后台管理员  → admin 表
+ * ==========================================================*/
+const  ADMINS = [
+  { username: 'admin', password: 'admin123', name: '系统管理员', role: 'super' },
+  { username: 'safety', password: 'safety123', name: '安全管理部', role: 'operator' }
+];
+
+/* ============================================================
+ * 8. 题库导入模板（供后台下载与示例填充）
+ * ==========================================================*/
+const  IMPORT_TEMPLATE = [
+  { 题号: 1, 题干: '示例：灭火器的压力表指针在绿区表示？', 选项A: '压力不足', 选项B: '压力正常', 选项C: '压力过高', 选项D: '已失效', 正确答案: 'B', 解析: '绿区为正常工作压力范围。' }
+];
+
+/* === data.js (inlined) === */
+/**
+ * data.js —— 数据访问层（模拟后端 API）
+ *
+ * 职责边界：
+ *   1. 从 test_data.js 导入静态数据（本文件不定义任何静态数据）
+ *   2. 归一化补全派生字段（_id / activityId / contentHash / createdAt）
+ *   3. 向外暴露与后端接口一一对应的引用方法
+ *
+ * 接入真实后端时：只需把本文件内部的方法体换成 HTTP 请求，
+ * 方法名、入参、返回结构均保持不变，上层原型代码无需改动。
+ */
+
+/* ============================================================
+ * 0. 基础工具
+ * ==========================================================*/
+
+const ACTIVITY_ID = '2026-safety-quiz';
+const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+const now = () => {
+  const d = new Date();
+  const p = (n) => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${p(d.getMonth() + 1)}-${p(d.getDate())} ${p(d.getHours())}:${p(d.getMinutes())}:${p(d.getSeconds())}`;
+};
+
+/** 可审计的公平随机：优先使用 crypto，不可用时退回 Math.random */
+function secureRandom() {
+  const c = globalThis.crypto;
+  if (c && typeof c.getRandomValues === 'function') {
+    const buf = new Uint32Array(1);
+    c.getRandomValues(buf);
+    return buf[0] / 4294967296;
+  }
+  return Math.random();
+}
+
+/** 题干归一化哈希，用于导入去重（与后端 content_hash 对齐） */
+function contentHash(text) {
+  const s = String(text).replace(/\s+/g, '').trim();
+  let h = 0;
+  for (let i = 0; i < s.length; i++) h = (Math.imul(31, h) + s.charCodeAt(i)) | 0;
+  return `h${(h >>> 0).toString(36)}`;
+}
+
+function clone(v) {
+  return JSON.parse(JSON.stringify(v));
+}
+
+/** 业务异常：携带错误码，供上层按类型渲染不同报错态 */
+class  BizError extends Error {
+  constructor(message, code = 'BIZ_ERROR', detail = null) {
+    super(message);
+    this.name = 'BizError';
+    this.code = code;
+    this.detail = detail;
+  }
+}
+
+/* ============================================================
+ * 1. 运行时状态（静态数据的可变副本，静态数据本身永不被修改）
+ * ==========================================================*/
+
+function buildInitialState() {
+  // 依据已有的中奖记录反推奖品池剩余量，保证「发出 + 剩余 = 总量」在初始态即成立
+  const issued = LOTTERY_RECORDS.reduce((m, r) => {
+    if (r.level) m[r.level] = (m[r.level] || 0) + 1;
+    return m;
+  }, {});
+
+  return {
+    activity: { ...ACTIVITY, _id: ACTIVITY_ID },
+    questions: QUESTIONS.map((q, i) => ({
+      _id: `q_${q.no}`,
+      activityId: ACTIVITY_ID,
+      contentHash: contentHash(q.title),
+      createdAt: now(),
+      ...q
+    })),
+    prizes: PRIZES.map((p) => ({
+      _id: `p_${p.level}`,
+      activityId: ACTIVITY_ID,
+      updatedAt: now(),
+      ...p,
+      remain: Math.max(0, p.total - (issued[p.level] || 0))
+    })),
+    participants: PARTICIPANTS.map((p, i) => ({
+      _id: `u_${i + 1}`,
+      activityId: ACTIVITY_ID,
+      createdAt: now(),
+      ...p
+    })),
+    lotteryRecords: LOTTERY_RECORDS.map((r, i) => ({
+      _id: `l_${i + 1}`,
+      activityId: ACTIVITY_ID,
+      ...r
+    })),
+    examRecords: EXAM_RECORDS.map((r, i) => ({ _id: `e_${i + 1}`, activityId: ACTIVITY_ID, ...r })),
+    admins: ADMINS.map((a, i) => ({ _id: `a_${i + 1}`, ...a })),
+    session: null, // 当前登录的参与者
+    adminSession: null, // 当前登录的管理员
+    seq: 1000
+  };
+}
+
+let state = buildInitialState();
+const nextId = (prefix) => `${prefix}_${++state.seq}`;
+
+/* ============================================================
+ * 2. 活动与配置
+ * ==========================================================*/
+
+async function  getActivity() {
+  await delay(60);
+  return clone(state.activity);
+}
+
+async function  updateActivity(patch) {
+  await delay(120);
+  Object.assign(state.activity, patch);
+  return clone(state.activity);
+}
+
+/* ============================================================
+ * 3. 题库
+ * ==========================================================*/
+
+async function  listQuestions({ keyword = '', category = '', page = 1, pageSize = 10 } = {}) {
+  await delay(160);
+  let list = state.questions;
+  if (keyword) list = list.filter((q) => q.title.includes(keyword) || String(q.no) === keyword);
+  if (category) list = list.filter((q) => q.category === category);
+  const total = list.length;
+  const start = (page - 1) * pageSize;
+  return { total, page, pageSize, list: clone(list.slice(start, start + pageSize)) };
+}
+
+async function  getQuestionStats() {
+  await delay(80);
+  const total = state.questions.length;
+  const enabled = state.questions.filter((q) => q.enabled).length;
+  const categories = [...new Set(state.questions.map((q) => q.category))].map((c) => ({
+    category: c,
+    count: state.questions.filter((q) => q.category === c).length
+  }));
+  return { total, enabled, disabled: total - enabled, categories };
+}
+
+async function  toggleQuestion(no, enabled) {
+  await delay(120);
+  const q = state.questions.find((x) => x.no === Number(no));
+  if (!q) throw new BizError('题目不存在', 'NOT_FOUND');
+  q.enabled = enabled;
+  return clone(q);
+}
+
+async function  updateQuestion(no, patch) {
+  await delay(140);
+  const q = state.questions.find((x) => x.no === Number(no));
+  if (!q) throw new BizError('题目不存在', 'NOT_FOUND');
+  Object.assign(q, patch, { contentHash: contentHash(q.title) });
+  return clone(q);
+}
+
+async function  deleteQuestion(no) {
+  await delay(140);
+  const i = state.questions.findIndex((x) => x.no === Number(no));
+  if (i < 0) throw new BizError('题目不存在', 'NOT_FOUND');
+  const [removed] = state.questions.splice(i, 1);
+  return clone(removed);
+}
+
+/**
+ * 批量导入题库
+ * @param {Array} rows  形如 [{题号,题干,选项A,选项B,选项C,选项D,正确答案,解析}]
+ * @param {string} mode append | overwrite | skip
+ * @returns {{total:number, success:number, failed:number, errors:Array}}
+ */
+async function  importQuestions(rows, mode = 'append') {
+  await delay(900); // 模拟服务端解析 + 校验耗时，用于展示加载态
+
+  if (!Array.isArray(rows) || rows.length === 0) {
+    throw new BizError('导入内容为空，请检查文件', 'EMPTY_FILE');
+  }
+
+  if (mode === 'overwrite') state.questions = [];
+
+  const existingHash = new Set(state.questions.map((q) => q.contentHash));
+  const errors = [];
+  let success = 0;
+  let maxNo = state.questions.reduce((m, q) => Math.max(m, q.no), 0);
+
+  rows.forEach((row, i) => {
+    const lineNo = i + 2; // 表头占第 1 行
+    const title = String(row.题干 ?? '').trim();
+    const answer = String(row.正确答案 ?? '').trim().toUpperCase();
+
+    if (!title) return errors.push({ lineNo, reason: '题干为空' });
+    if (!['A', 'B', 'C', 'D'].includes(answer)) return errors.push({ lineNo, reason: `正确答案非法：${answer || '空'}` });
+
+    const options = {
+      A: String(row.选项A ?? '').trim(),
+      B: String(row.选项B ?? '').trim(),
+      C: String(row.选项C ?? '').trim(),
+      D: String(row.选项D ?? '').trim()
+    };
+    const emptyOpt = Object.entries(options).find(([, v]) => !v);
+    if (emptyOpt) return errors.push({ lineNo, reason: `选项 ${emptyOpt[0]} 为空` });
+    if (new Set(Object.values(options)).size !== 4) return errors.push({ lineNo, reason: '存在重复选项' });
+
+    const hash = contentHash(title);
+    if (existingHash.has(hash)) {
+      if (mode === 'skip') return errors.push({ lineNo, reason: '题干重复，已跳过' });
+      return errors.push({ lineNo, reason: `题干与第 ${state.questions.find((q) => q.contentHash === hash).no} 题重复` });
+    }
+
+    existingHash.add(hash);
+    maxNo += 1;
+    state.questions.push({
+      _id: `q_${maxNo}`,
+      activityId: ACTIVITY_ID,
+      no: maxNo,
+      category: String(row.分类 ?? '未分类').trim() || '未分类',
+      title,
+      options,
+      answer,
+      analysis: String(row.解析 ?? '').trim(),
+      enabled: true,
+      contentHash: hash,
+      createdAt: now()
+    });
+    success += 1;
+  });
+
+  return { total: rows.length, success, failed: errors.length, errors };
+}
+
+async function  getImportTemplate() {
+  await delay(60);
+  return clone(IMPORT_TEMPLATE);
+}
+
+/* ============================================================
+ * 4. 身份登记
+ * ==========================================================*/
+
+async function  register(name, empNo) {
+  await delay(420);
+
+  const n = String(name ?? '').trim();
+  const e = String(empNo ?? '').trim();
+
+  if (n.length < 2 || n.length > 10) throw new BizError('姓名长度应为 2–10 个字符', 'INVALID_NAME');
+  if (!/^[A-Za-z0-9]{4,12}$/.test(e)) throw new BizError('工号应为 4–12 位字母或数字', 'INVALID_EMPNO');
+
+  const exist = state.participants.find((p) => p.empNo === e && p.name === n);
+  if (exist) {
+    state.session = exist._id;
+    return { reused: true, participant: clone(exist) };
+  }
+
+  const sameEmpNo = state.participants.find((p) => p.empNo === e && p.name !== n);
+  const participant = {
+    _id: nextId('u'),
+    activityId: ACTIVITY_ID,
+    name: n,
+    empNo: e,
+    openid: `o-${e.toLowerCase()}`,
+    passed: false,
+    passedAt: null,
+    drawn: false,
+    drawnAt: null,
+    createdAt: now()
+  };
+  state.participants.push(participant);
+  state.session = participant._id;
+
+  return {
+    reused: false,
+    warning: sameEmpNo ? `该工号已由「${sameEmpNo.name}」登记，如非本人请联系活动管理员` : '',
+    participant: clone(participant)
+  };
+}
+
+async function  currentParticipant() {
+  if (!state.session) return null;
+  const p = state.participants.find((x) => x._id === state.session);
+  return p ? clone(p) : null;
+}
+
+function  logoutParticipant() {
+  state.session = null;
+}
+
+/* ============================================================
+ * 5. 答题引擎
+ * ==========================================================*/
+
+/** 随机抽题：不下发正确答案 */
+async function  drawQuestions() {
+  await delay(520);
+
+  const cfg = state.activity;
+  if (cfg.status !== 'open') throw new BizError('活动未开始或已结束', 'ACTIVITY_CLOSED');
+
+  const pool = state.questions.filter((q) => q.enabled);
+  if (pool.length < cfg.questionCount) {
+    throw new BizError(`可用题目不足，当前仅 ${pool.length} 题`, 'POOL_SHORTAGE');
+  }
+
+  // Fisher-Yates 部分洗牌，取前 N 题
+  const arr = [...pool];
+  for (let i = 0; i < cfg.questionCount; i++) {
+    const j = i + Math.floor(secureRandom() * (arr.length - i));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  const picked = arr.slice(0, cfg.questionCount);
+
+  return picked.map((q) => ({
+    _id: q._id,
+    no: q.no,
+    title: q.title,
+    category: q.category,
+    options: clone(q.options)
+  }));
+}
+
+/** 交卷判分：服务端比对，不信任前端 */
+async function  submitExam(questionNos, answers) {
+  await delay(680);
+
+  const p = state.participants.find((x) => x._id === state.session);
+  if (!p) throw new BizError('请先登记身份信息', 'NOT_REGISTERED');
+
+  if (!Array.isArray(questionNos) || !Array.isArray(answers) || questionNos.length !== answers.length) {
+    throw new BizError('作答数据不完整', 'INVALID_PAYLOAD');
+  }
+
+  const details = questionNos.map((no, i) => {
+    const q = state.questions.find((x) => x.no === Number(no));
+    return { no: Number(no), yourAnswer: answers[i], correctAnswer: q ? q.answer : '', correct: !!q && q.answer === answers[i] };
+  });
+
+  const correctCount = details.filter((d) => d.correct).length;
+  const passed = correctCount >= state.activity.passScore;
+
+  if (passed && !p.passed) {
+    p.passed = true;
+    p.passedAt = now();
+  }
+
+  state.examRecords.push({
+    _id: nextId('e'),
+    activityId: ACTIVITY_ID,
+    empNo: p.empNo,
+    questionNos: questionNos.map(Number),
+    answers,
+    correctCount,
+    passed,
+    submittedAt: now()
+  });
+
+  return {
+    correctCount,
+    total: questionNos.length,
+    passed,
+    passScore: state.activity.passScore,
+    details: details.map((d) => {
+      const q = state.questions.find((x) => x.no === d.no);
+      return { ...d, title: q?.title ?? '', analysis: q?.analysis ?? '', options: clone(q?.options ?? {}) };
+    }),
+    participant: clone(p)
+  };
+}
+
+/* ============================================================
+ * 6. 抽奖引擎（核心，与 PRD 附录 A 一一对应）
+ * ==========================================================*/
+
+/** 固定权重模式下的一/二/三等奖权重（weightMode = 'fixed' 时使用） */
+const FIXED_WEIGHT = { 1: 1, 2: 8, 3: 16 };
+
+function prizeWeight(prize, mode) {
+  if (mode === 'fixed') return prize.weight > 0 ? prize.weight : FIXED_WEIGHT[prize.level] ?? 1;
+  if (mode === 'initial') return prize.total;
+  return prize.remain; // remain（默认）：按剩余库存加权
+}
+
+function weightedPick(pool, mode) {
+  const weights = pool.map((p) => prizeWeight(p, mode));
+  const sum = weights.reduce((a, b) => a + b, 0);
+  if (sum <= 0) return pool[Math.floor(secureRandom() * pool.length)];
+  let r = secureRandom() * sum;
+  for (let i = 0; i < pool.length; i++) {
+    r -= weights[i];
+    if (r < 0) return pool[i];
+  }
+  return pool[pool.length - 1];
+}
+
+/** 条件原子扣减：生产环境为 UPDATE ... WHERE remain > 0，此处以同步单线程等价模拟 */
+function atomicDecrement(level) {
+  const prize = state.prizes.find((p) => p.level === level);
+  if (!prize || prize.remain <= 0) return false;
+  prize.remain -= 1;
+  prize.updatedAt = now();
+  return true;
+}
+
+async function  getEligibility() {
+  const p = state.participants.find((x) => x._id === state.session);
+  if (!p) return { registered: false, passed: false, drawn: false };
+  return { registered: true, passed: p.passed, drawn: p.drawn, passedAt: p.passedAt };
+}
+
+/**
+ * 执行抽奖
+ * @returns {{won:boolean, level:number|null, prizeName:string|null, message:string, poolEmpty:boolean}}
+ */
+async function  drawLottery() {
+  await delay(1400); // 留出抽奖动画时间
+
+  const p = state.participants.find((x) => x._id === state.session);
+  if (!p) throw new BizError('请先登记身份信息', 'NOT_REGISTERED');
+  if (!p.passed) throw new BizError('答题未通关，暂无抽奖资格', 'NOT_PASSED');
+  if (p.drawn) {
+    const old = state.lotteryRecords.find((r) => r.empNo === p.empNo);
+    throw new BizError('每人仅可参与一次抽奖', 'ALREADY_DRAWN', old);
+  }
+
+  const cfg = state.activity;
+
+  // 奖池是否整体抽空
+  const poolEmpty = state.prizes.every((x) => x.remain <= 0);
+  if (poolEmpty && cfg.poolEmptyBehavior === 'close') {
+    throw new BizError('奖品已全部送出，感谢参与！', 'POOL_EMPTY');
+  }
+
+  // 阶段一：中奖判定，恒定 winRate
+  const r1 = secureRandom();
+  let level = null;
+  let prizeName = null;
+  let message = '谢谢参与';
+
+  if (r1 < cfg.winRate) {
+    // 阶段二 + 三：加权选等级 + 原子扣减，失败则剔除该等级后重试，最多 3 次
+    let pool = state.prizes.filter((x) => x.remain > 0);
+    for (let attempt = 0; attempt < 3 && pool.length > 0; attempt++) {
+      const picked = weightedPick(pool, cfg.weightMode);
+      if (atomicDecrement(picked.level)) {
+        level = picked.level;
+        prizeName = `${picked.name} · ${picked.desc}`;
+        message = `恭喜获得${picked.name}`;
+        break;
+      }
+      pool = pool.filter((x) => x.level !== picked.level);
+    }
+    if (level === null) message = '谢谢参与'; // 并发耗尽，降级
+  }
+
+  // 写入中奖记录（唯一性由 (activityId, empNo) 保证）
+  p.drawn = true;
+  p.drawnAt = now();
+  const wonAt = now();
+  state.lotteryRecords.push({
+    _id: nextId('l'),
+    activityId: ACTIVITY_ID,
+    participantId: p._id,
+    name: p.name,
+    empNo: p.empNo,
+    level,
+    prizeName,
+    wonAt,
+    remark: level ? '' : '谢谢参与'
+  });
+
+  return { won: level !== null, level, prizeName, message, wonAt, poolEmpty: state.prizes.every((x) => x.remain <= 0) };
+}
+
+async function  getMyResult() {
+  const p = state.participants.find((x) => x._id === state.session);
+  if (!p) return null;
+  const record = state.lotteryRecords.find((r) => r.empNo === p.empNo);
+  return { participant: clone(p), record: record ? clone(record) : null };
+}
+
+/* ============================================================
+ * 7. 管理后台
+ * ==========================================================*/
+
+async function  adminLogin(username, password) {
+  await delay(500);
+  const admin = state.admins.find((a) => a.username === username && a.password === password);
+  if (!admin) throw new BizError('账号或密码错误', 'BAD_CREDENTIALS');
+  state.adminSession = admin._id;
+  const { password: _pw, ...safe } = admin;
+  return safe;
+}
+
+function  adminLogout() {
+  state.adminSession = null;
+}
+
+function  currentAdmin() {
+  if (!state.adminSession) return null;
+  const a = state.admins.find((x) => x._id === state.adminSession);
+  if (!a) return null;
+  const { password: _pw, ...safe } = a;
+  return safe;
+}
+
+async function  getStats() {
+  await delay(220);
+  const participants = state.participants.length;
+  const examCount = state.examRecords.length;
+  const passed = state.participants.filter((p) => p.passed).length;
+  const drawn = state.participants.filter((p) => p.drawn).length;
+  const won = state.lotteryRecords.filter((r) => r.level !== null).length;
+  return {
+    participants,
+    examCount,
+    passed,
+    drawn,
+    won,
+    winRateActual: drawn ? +(won / drawn).toFixed(4) : 0,
+    prizes: clone(state.prizes),
+    prizeTotal: state.prizes.reduce((s, p) => s + p.total, 0),
+    prizeRemain: state.prizes.reduce((s, p) => s + p.remain, 0)
+  };
+}
+
+async function  listWinners({ keyword = '', level = '', page = 1, pageSize = 10 } = {}) {
+  await delay(240);
+  let list = state.lotteryRecords.slice().sort((a, b) => String(b.wonAt).localeCompare(String(a.wonAt)));
+  if (keyword) list = list.filter((r) => r.name.includes(keyword) || r.empNo.includes(keyword));
+  if (level === 'won') list = list.filter((r) => r.level !== null);
+  else if (level) list = list.filter((r) => String(r.level) === String(level));
+  const total = list.length;
+  const start = (page - 1) * pageSize;
+  return { total, page, pageSize, list: clone(list.slice(start, start + pageSize)) };
+}
+
+async function  listParticipants({ keyword = '' } = {}) {
+  await delay(200);
+  let list = state.participants;
+  if (keyword) list = list.filter((p) => p.name.includes(keyword) || p.empNo.includes(keyword));
+  return clone(list);
+}
+
+async function  updatePrize(level, patch) {
+  await delay(200);
+  const prize = state.prizes.find((p) => p.level === Number(level));
+  if (!prize) throw new BizError('奖项不存在', 'NOT_FOUND');
+  Object.assign(prize, patch, { updatedAt: now() });
+  return clone(prize);
+}
+
+async function  exportWinnersCsv() {
+  await delay(300);
+  const rows = state.lotteryRecords.filter((r) => r.level !== null);
+  const header = '姓名,工号,奖项,奖品,中奖时间\n';
+  const body = rows.map((r) => `${r.name},${r.empNo},${r.level}等奖,${r.prizeName},${r.wonAt}\n`).join('');
+  return header + body;
+}
+
+/* ============================================================
+ * 8. 测试工具（仅供《测试方案》验证使用，生产环境移除）
+ * ==========================================================*/
+
+const  TEST_UTILS = {
+  /** 重置全部运行时状态到初始态 */
+  reset() {
+    state = buildInitialState();
+  },
+
+  /** 快照当前奖品池 */
+  snapshotPool() {
+    return clone(state.prizes);
+  },
+
+  /**
+   * 批量模拟抽奖，用于验证中奖率与库存扣减。
+   * 注意：为绕过"一人一次"限制，直接操作状态，不走资格校验。
+   * @param {number} times 模拟次数
+   * @param {number} seed 随机种子（可选，用于复现）
+   */
+  simulateDraws(times, seed = null) {
+    let s = seed;
+    const rand = () => {
+      if (s === null) return secureRandom();
+      s = (s * 1103515245 + 12345) & 0x7fffffff;
+      return s / 0x7fffffff;
+    };
+
+    // 传入 seed 时使用可复现的线性同余随机，否则使用安全随机
+    const __rand = rand;
+
+    const result = { times, won: 0, byLevel: { 1: 0, 2: 0, 3: 0 }, oversold: 0, fallback: 0 };
+
+    for (let i = 0; i < times; i++) {
+      const cfg = state.activity;
+      const poolEmpty = state.prizes.every((x) => x.remain <= 0);
+      if (poolEmpty) break;
+
+      const r1 = __rand();
+      if (r1 >= cfg.winRate) continue;
+
+      let pool = state.prizes.filter((x) => x.remain > 0);
+      let got = null;
+      for (let attempt = 0; attempt < 3 && pool.length > 0; attempt++) {
+        const weights = pool.map((p) => prizeWeight(p, cfg.weightMode));
+        const sum = weights.reduce((a, b) => a + b, 0);
+        let r = __rand() * sum;
+        let picked = pool[pool.length - 1];
+        for (let k = 0; k < pool.length; k++) {
+          r -= weights[k];
+          if (r < 0) {
+            picked = pool[k];
+            break;
+          }
+        }
+        if (atomicDecrement(picked.level)) {
+          got = picked.level;
+          break;
+        }
+        pool = pool.filter((x) => x.level !== picked.level);
+      }
+
+      if (got) {
+        result.won += 1;
+        result.byLevel[got] += 1;
+      } else {
+        result.fallback += 1;
+      }
+    }
+
+    // 校验超发
+    state.prizes.forEach((p) => {
+      if (p.remain < 0) result.oversold += Math.abs(p.remain);
+      const issued = result.byLevel[p.level] ?? 0;
+      if (issued > p.total) result.oversold += issued - p.total;
+    });
+
+    result.remain = state.prizes.map((p) => ({ level: p.level, total: p.total, remain: p.remain }));
+    result.actualWinRate = result.times ? +(result.won / result.times).toFixed(4) : 0;
+    return result;
+  },
+
+  /** 直接构造一个已通关、未抽奖的测试身份，供原型快速走通流程 */
+  seedParticipant(name, empNo, { passed = true } = {}) {
+    let p = state.participants.find((x) => x.empNo === empNo && x.name === name);
+    if (!p) {
+      p = {
+        _id: nextId('u'),
+        activityId: ACTIVITY_ID,
+        name,
+        empNo,
+        openid: `o-${empNo.toLowerCase()}`,
+        passed: false,
+        passedAt: null,
+        drawn: false,
+        drawnAt: null,
+        createdAt: now()
+      };
+      state.participants.push(p);
+    }
+    if (passed && !p.passed) {
+      p.passed = true;
+      p.passedAt = now();
+    }
+    state.session = p._id;
+    return clone(p);
+  },
+
+  /** 强制消耗某奖项库存（用于验证"一等奖抽完后再抽不到"） */
+  drainPrize(level) {
+    const p = state.prizes.find((x) => x.level === Number(level));
+    if (p) p.remain = 0;
+    return clone(state.prizes);
+  }
+};
+
+/* ============================================================
+ * 9. 默认聚合导出（便于按命名空间整体引用）
+ * ==========================================================*/
+const Data = {
+  getActivity,
+  updateActivity,
+  listQuestions,
+  getQuestionStats,
+  toggleQuestion,
+  updateQuestion,
+  deleteQuestion,
+  importQuestions,
+  getImportTemplate,
+  register,
+  currentParticipant,
+  logoutParticipant,
+  drawQuestions,
+  submitExam,
+  getEligibility,
+  drawLottery,
+  getMyResult,
+  adminLogin,
+  adminLogout,
+  currentAdmin,
+  getStats,
+  listWinners,
+  listParticipants,
+  updatePrize,
+  exportWinnersCsv,
+  TEST_UTILS
+};
+
+
+
+return { Data, BizError, TEST_UTILS };
+})()
+
+/* ============================================================
+ * 0. 全局状态
+ * ==========================================================*/
+const state = {
+  side: 'c',           // c=参与者端 a=管理后台
+  route: 'home',
+  annoOpen: false,
+  debugOpen: false,
+  me: null,            // 当前登记身份
+  quiz: null,          // 当前答题会话 {questions, index, answers, result}
+  lottery: null,       // 抽奖结果
+  admin: null,
+  forceError: false    // 调试：强制下次请求失败
+};
+
+const $ = (s, r = document) => r.querySelector(s);
+const esc = (s) => String(s ?? '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+function toast(msg, type = '') {
+  const t = $('#toast');
+  t.textContent = msg;
+  t.className = 'toast show ' + type;
+  clearTimeout(t._timer);
+  t._timer = setTimeout(() => (t.className = 'toast ' + type), 2200);
+}
+
+/** 统一请求包装：注入加载态与调试用的强制报错 */
+async function call(fn, { loading = null, silent = false } = {}) {
+  const setLoading = (text) => {
+    const mask = $('#loadingMask');
+    if (!mask) return;
+    mask.style.display = 'flex';
+    mask.querySelector('.loading-text').textContent = text;
+  };
+  try {
+    if (loading) setLoading(loading);
+    if (state.forceError) {
+      state.forceError = false;
+      await new Promise((r) => setTimeout(r, 600));
+      throw new BizError('网络连接超时，请检查网络后重试', 'NETWORK');
+    }
+    return await fn();
+  } catch (e) {
+    if (e instanceof BizError) {
+      if (!silent) toast(e.message, 'err');
+    } else {
+      if (!silent) toast('请求失败：' + e.message, 'err');
+    }
+    throw e;
+  } finally {
+    const mask = $('#loadingMask');
+    if (mask) mask.style.display = 'none';
+  }
+}
+
+/* ============================================================
+ * 1. 页面清单（页面层级 / 端 / 名称）
+ * ==========================================================*/
+const PAGES = [
+  { route: 'home',            side: 'c', layer: 'L1', name: '活动首页',   nav: true },
+  { route: 'register',        side: 'c', layer: 'L2', name: '身份登记',   nav: true },
+  { route: 'quiz',            side: 'c', layer: 'L2', name: '答题页',     nav: true },
+  { route: 'quiz-result',     side: 'c', layer: 'L3', name: '答题结果',   nav: true },
+  { route: 'lottery',         side: 'c', layer: 'L3', name: '抽奖页',     nav: true },
+  { route: 'lottery-result',  side: 'c', layer: 'L4', name: '抽奖结果',   nav: true },
+  { route: 'my-prize',        side: 'c', layer: 'L2', name: '我的奖品',   nav: true },
+  { route: 'admin-login',     side: 'a', layer: 'A1', name: '后台登录',   nav: true },
+  { route: 'admin-dashboard', side: 'a', layer: 'A2', name: '数据看板',   nav: true },
+  { route: 'admin-questions', side: 'a', layer: 'A3', name: '题库管理',   nav: true },
+  { route: 'admin-prizes',    side: 'a', layer: 'A4', name: '奖品配置',   nav: true },
+  { route: 'admin-winners',   side: 'a', layer: 'A5', name: '获奖名单',   nav: true }
+];
+
+/** 页面设计标注：与线框图文档一一对应 */
+const ANNO = {
+  home: {
+    entry: '扫码 / 分享链接（携带 activityId）',
+    jump: '「立即参与」→ 身份登记（未登记）或 答题页（已登记）',
+    states: '活动未开始 / 已结束 / 进行中',
+    comps: [
+      ['活动卡组件', '活动名称、起止时间、说明文案'],
+      ['规则卡组件', '题量、通关阈值、奖项与中奖概率'],
+      ['主按钮', '立即参与，点击后按登记状态分流'],
+      ['底部 Tab', '首页 / 我的奖品']
+    ]
+  },
+  register: {
+    entry: '首页「立即参与」，或答题页未登记时重定向',
+    jump: '提交成功 → 答题页；已登记同身份 → 静默复用',
+    states: '校验失败（姓名/工号）、同工号不同姓名告警、提交中',
+    comps: [
+      ['表单字段', '姓名（2–10 字）、工号（4–12 位字母数字）'],
+      ['行内校验', '失焦即校验，错误红框 + 下方提示'],
+      ['告警条', '同工号不同姓名时黄色提示，不阻断提交'],
+      ['提交按钮', '加载中禁用，防重复提交']
+    ]
+  },
+  quiz: {
+    entry: '登记成功 / 结果页「再答一次」',
+    jump: '答完 5 题交卷 → 答题结果页',
+    states: '抽题加载中、作答中、交卷加载中',
+    comps: [
+      ['进度条', '5 段，已答/当前/未答三态'],
+      ['题卡', '题干 + 4 个单选选项，选中高亮'],
+      ['导航按钮', '上一题 / 下一题 / 交卷'],
+      ['安全说明', '本页数据不含正确答案，判分在服务端']
+    ]
+  },
+  'quiz-result': {
+    entry: '答题页交卷',
+    jump: '通关 → 抽奖页；未通关 → 重新答题',
+    states: '通关成功（绿）、未通关（橙）、可查看解析',
+    comps: [
+      ['成绩卡', '答对题数 / 总数 / 通关阈值'],
+      ['状态徽章', '通关或未达标'],
+      ['解析列表', '逐题展示你的答案、正确答案与解析'],
+      ['分流按钮', '通关去抽奖，未通关再答一次']
+    ]
+  },
+  lottery: {
+    entry: '答题结果页「去抽奖」',
+    jump: '抽奖完成 → 抽奖结果页',
+    states: '加载中（转盘旋转）、奖池已空、无资格',
+    comps: [
+      ['转盘组件', '对应 lucky-canvas，中奖索引由服务端返回'],
+      ['抽奖按钮', '点击后禁用，避免重复提交'],
+      ['奖池余量', '实时显示各奖项剩余'],
+      ['规则说明', '每人仅可抽奖一次']
+    ]
+  },
+  'lottery-result': {
+    entry: '抽奖页抽奖完成',
+    jump: '中奖 → 我的奖品；未中奖 → 返回首页',
+    states: '一等奖/二等奖/三等奖/谢谢参与',
+    comps: [
+      ['结果卡', '奖项等级配色区分：一 amber、二 blue、三 green、未中 gray'],
+      ['奖品信息', '奖品名称与兑奖说明'],
+      ['二次抽奖', '再次进入时提示「每人仅可参与一次抽奖」'],
+      ['操作按钮', '查看我的奖品 / 返回首页']
+    ]
+  },
+  'my-prize': {
+    entry: '底部 Tab「我的奖品」/ 抽奖结果页',
+    jump: '无更多跳转',
+    states: '已中奖、未中奖（空态）、未参与（空态）',
+    comps: [
+      ['身份卡', '姓名与工号'],
+      ['奖品卡', '奖项、奖品、中奖时间、兑奖地点'],
+      ['空状态', '未中奖或未参与时的插画与引导']
+    ]
+  },
+  'admin-login': {
+    entry: '后台域名直接访问',
+    jump: '登录成功 → 数据看板',
+    states: '账号密码错误、加载中',
+    comps: [['账号输入', '用户名'], ['密码输入', '密码（掩码）'], ['登录按钮', '加载中禁用']]
+  },
+  'admin-dashboard': {
+    entry: '登录成功 / 侧边栏',
+    jump: '侧边栏切至题库、奖品、名单',
+    states: '加载中、无数据',
+    comps: [
+      ['统计卡组', '参与人数、答题人次、通关数、抽奖数、中奖数'],
+      ['奖池进度', '各奖项已发/总量进度条'],
+      ['中奖率卡', '实际中奖率与配置值对比']
+    ]
+  },
+  'admin-questions': {
+    entry: '侧边栏「题库管理」',
+    jump: '导入弹窗、上下页、启用停用',
+    states: '空状态（无题目）、加载中、导入成功/部分失败',
+    comps: [
+      ['搜索栏', '按题干或题号检索'],
+      ['导入按钮', '打开 Excel 导入弹窗'],
+      ['题目表格', '题号/题干/分类/答案/状态/操作'],
+      ['分页器', '每页 10 条'],
+      ['导入结果', '成功 N 条 / 失败 M 条 + 错误行下载']
+    ]
+  },
+  'admin-prizes': {
+    entry: '侧边栏「奖品配置」',
+    jump: '无',
+    states: '保存成功、库存为 0 的告警',
+    comps: [
+      ['奖项卡', '等级、名称、总量、剩余、权重'],
+      ['库存进度', '剩余/总量条形图，归零标红'],
+      ['策略配置', '中奖概率、权重模式、奖池耗尽行为']
+    ]
+  },
+  'admin-winners': {
+    entry: '侧边栏「获奖名单」',
+    jump: '无',
+    states: '空状态（无人中奖）、加载中',
+    comps: [
+      ['筛选栏', '关键词、奖项等级'],
+      ['名单表格', '姓名/工号/奖项/奖品/中奖时间'],
+      ['导出按钮', '导出 CSV'],
+      ['统计行', '中奖人数与实际中奖率']
+    ]
+  }
+};
+
+/* ============================================================
+ * 2. 通用 UI 片段
+ * ==========================================================*/
+const skeleton = (n = 3) =>
+  `<div class="skel skel-box"></div>` + Array.from({ length: n }, (_, i) => `<div class="skel skel-line" style="width:${90 - i * 12}%"></div>`).join('');
+
+/** 空状态组件。btn = { action, route, label } */
+const emptyState = (title, desc, btn) => `
+  <div class="empty">
+    <div class="icon"></div>
+    <div class="t">${esc(title)}</div>
+    <div class="d">${esc(desc)}</div>
+    ${btn ? `<button class="btn primary" data-action="${btn.action}"${btn.route ? ` data-route="${btn.route}"` : ''}>${esc(btn.label)}</button>` : ''}
+  </div>`;
+
+const loadingMask = () => `<div class="loading-mask" id="loadingMask" style="display:none"><div class="spinner"></div><div class="loading-text tiny muted"></div></div>`;
+
+/* ============================================================
+ * 3. 参与者端页面
+ * ==========================================================*/
+
+async function pageHome() {
+  const act = await Data.getActivity();
+  const stats = await Data.getStats();
+  const closed = act.status !== 'open';
+  return {
+    navbar: '活动首页',
+    body: `
+      <div class="card" style="background:linear-gradient(160deg,#185FA5,#0C447C);color:#fff;border:none">
+        <div style="font-size:20px;font-weight:600;margin-bottom:8px">${esc(act.name)}</div>
+        <div class="tiny" style="opacity:.85">${esc(act.startAt)} 至 ${esc(act.endAt)}</div>
+      </div>
+      <div class="card">
+        <div class="tiny muted mb8">活动说明</div>
+        <div class="tiny">${esc(act.description)}</div>
+      </div>
+      <div class="card">
+        <div class="tiny muted mb12">奖项设置</div>
+        ${stats.prizes.map((p) => `
+          <div class="row between mb8">
+            <div class="row gap12"><span class="badge ${p.level === 1 ? 'amber' : p.level === 2 ? 'blue' : 'green'}">${esc(p.name)}</span>
+            <span class="tiny muted">${esc(p.desc)}</span></div>
+            <span class="tiny">${p.remain}/${p.total}</span>
+          </div>`).join('')}
+        <div class="tiny muted mt8">总中奖概率 ${(act.winRate * 100).toFixed(0)}%，每人仅可抽奖一次</div>
+      </div>
+      ${closed ? `<div class="form-error">活动${act.status === 'draft' ? '尚未开始' : '已结束'}，感谢关注</div>` : ''}
+      <button class="btn primary btn-block" data-action="go-register" ${closed ? 'disabled style="opacity:.5"' : ''}>立即参与</button>
+      <div class="tiny muted center mt12">已参与 ${stats.participants} 人 · 已抽奖 ${stats.drawn} 人</div>
+    `,
+    tabbar: true
+  };
+}
+
+function pageRegister(prefill = {}, error = '') {
+  return {
+    navbar: '身份登记',
+    back: 'home',
+    body: `
+      <div class="card">
+        <div class="tiny muted mb12">请先登记身份信息，用于奖品核销。同一工号仅可抽奖一次。</div>
+        ${error ? `<div class="form-error">${esc(error)}</div>` : ''}
+        <div class="field" id="f-name">
+          <label>姓名</label>
+          <input id="ipt-name" placeholder="请输入真实姓名（2–10 字）" value="${esc(prefill.name || '')}">
+          <div class="err">姓名长度应为 2–10 个字符</div>
+        </div>
+        <div class="field" id="f-emp">
+          <label>工号</label>
+          <input id="ipt-emp" placeholder="请输入工号（4–12 位字母或数字）" value="${esc(prefill.empNo || '')}">
+          <div class="err">工号应为 4–12 位字母或数字</div>
+        </div>
+        <button class="btn primary btn-block" data-action="submit-register">开始答题</button>
+        <div class="tiny muted center mt12">信息仅用于本次活动核销，活动结束后可申请删除</div>
+      </div>
+      <div class="card flat">
+        <div class="tiny muted mb8">测试账号（点击直接填入）</div>
+        <div class="row wrap gap12">
+          <button class="btn" data-action="fill-demo" data-name="张伟" data-emp="A10086">张伟 / A10086（已抽过）</button>
+          <button class="btn" data-action="fill-demo" data-name="李静" data-emp="A10087">李静 / A10087（未抽）</button>
+        </div>
+      </div>`
+  };
+}
+
+async function pageQuiz() {
+  if (!state.me) return pageRegister({}, '请先登记身份信息后再开始答题');
+  try {
+    const qs = await call(() => Data.drawQuestions(), { loading: '正在抽题…' });
+    state.quiz = { questions: qs, index: 0, answers: new Array(qs.length).fill(null) };
+    return renderQuiz();
+  } catch {
+    return {
+      navbar: '答题',
+      back: 'home',
+      body: `<div class="card">${skeleton(3)}</div>
+        <div class="form-error">题目加载失败，请检查网络后重试</div>
+        <button class="btn primary btn-block" data-action="goto" data-route="quiz">重新加载</button>`
+    };
+  }
+}
+
+function renderQuiz() {
+  const q = state.quiz;
+  const item = q.questions[q.index];
+  return {
+    navbar: `答题 ${q.index + 1}/${q.questions.length}`,
+    back: 'home',
+    body: `
+      <div class="q-progress">${q.questions.map((_, i) => `<i class="${i < q.index ? 'done' : i === q.index ? 'cur' : ''}"></i>`).join('')}</div>
+      <div class="card">
+        <div class="row between mb12"><span class="badge gray">${esc(item.category)}</span><span class="tiny muted">第 ${item.no} 题</span></div>
+        <div class="q-title">${esc(item.title)}</div>
+      </div>
+      ${['A', 'B', 'C', 'D'].map((k) => `
+        <button class="opt ${q.answers[q.index] === k ? 'sel' : ''}" data-action="pick" data-key="${k}">
+          <span class="k">${k}</span><span>${esc(item.options[k])}</span>
+        </button>`).join('')}
+      <div class="row gap12 mt16">
+        <button class="btn" style="flex:1;${q.index === 0 ? 'opacity:.4' : ''}" data-action="prev-q" ${q.index === 0 ? 'disabled' : ''}>上一题</button>
+        ${q.index < q.questions.length - 1
+          ? `<button class="btn primary" style="flex:1" data-action="next-q">下一题</button>`
+          : `<button class="btn primary" style="flex:1" data-action="submit-quiz">交卷</button>`}
+      </div>
+      <div class="tiny muted center mt12">本页不包含正确答案，判分在服务端完成</div>`
+  };
+}
+
+function pageQuizResult() {
+  const r = state.quiz.result;
+  if (!r) return { navbar: '答题结果', back: 'home', body: emptyState('暂无答题记录', '先完成一次答题吧', { action: 'go-register', label: '去登记' }) };
+  return {
+    navbar: '答题结果',
+    back: 'home',
+    body: `
+      <div class="card center" style="background:${r.passed ? 'var(--c-success-bg)' : 'var(--c-warn-bg)'};border:none">
+        <div style="font-size:32px;font-weight:600;color:${r.passed ? 'var(--c-success)' : 'var(--c-warn)'}">${r.correctCount} / ${r.total}</div>
+        <div class="tiny" style="color:${r.passed ? 'var(--c-success)' : 'var(--c-warn)'}">${r.passed ? '恭喜通关，获得抽奖资格' : `答对 ${r.passScore} 题即可通关`}</div>
+      </div>
+      ${r.passed
+        ? `<button class="btn primary btn-block" data-action="goto" data-route="lottery">去抽奖</button>`
+        : `<button class="btn primary btn-block" data-action="re-quiz">再答一次</button>`}
+      <div class="card mt16">
+        <div class="tiny muted mb12">答案解析</div>
+        ${r.details.map((d, i) => `
+          <div class="mb12" style="padding-bottom:12px;border-bottom:1px solid var(--c-border)">
+            <div class="row gap12 mb8"><span class="badge ${d.correct ? 'green' : 'red'}">${d.correct ? '答对' : '答错'}</span><span class="tiny muted">第 ${i + 1} 题</span></div>
+            <div class="tiny mb8">${esc(d.title)}</div>
+            ${['A', 'B', 'C', 'D'].map((k) => `
+              <div class="tiny" style="padding:5px 10px;border-radius:6px;margin-bottom:4px;background:${k === d.correctAnswer ? 'var(--c-success-bg)' : k === d.yourAnswer && !d.correct ? 'var(--c-danger-bg)' : '#fafaf9'}">
+                ${k}. ${esc(d.options[k])}${k === d.correctAnswer ? ' ✓' : ''}${k === d.yourAnswer && !d.correct ? ' ✗' : ''}
+              </div>`).join('')}
+            <div class="tiny muted mt8">解析：${esc(d.analysis)}</div>
+          </div>`).join('')}
+      </div>`
+  };
+}
+
+async function pageLottery() {
+  if (!state.me) return pageRegister({}, '请先登记身份信息');
+  const elig = await Data.getEligibility();
+  const stats = await Data.getStats();
+  const poolEmpty = stats.prizeRemain === 0;
+
+  if (!elig.passed) {
+    return { navbar: '抽奖', back: 'home', body: emptyState('尚未获得抽奖资格', '答对 3 题通关后即可参与抽奖', { action: 'goto', route: 'quiz', label: '去答题' }) };
+  }
+  if (elig.drawn) {
+    return {
+      navbar: '抽奖',
+      back: 'home',
+      body: `<div class="card center"><div class="prize-icon level-0" style="margin-bottom:8px"></div>
+        <div style="font-size:16px;font-weight:500">每人仅可参与一次抽奖</div>
+        <div class="tiny muted mt8">你已于 ${esc(state.me.drawnAt || '-')} 完成抽奖</div>
+        <button class="btn primary btn-block mt16" data-action="goto" data-route="my-prize">查看我的奖品</button></div>`
+    };
+  }
+
+  // 扇区须与抽奖算法结局一一对应（中奖 1/2/3 等 或 未中），避免误导评审
+  const segs = [
+    { name: '一等奖', color: '#BA7517' },
+    { name: '二等奖', color: '#378ADD' },
+    { name: '三等奖', color: '#639922' },
+    { name: '谢谢参与', color: '#B4B2A9' }
+  ];
+  const n = segs.length;
+  return {
+    navbar: '抽奖',
+    back: 'home',
+    body: `
+      <div class="card center">
+        <div class="tiny muted mb8">通关达成，获得 1 次抽奖机会</div>
+        <div class="wheel-wrap">
+          <div class="wheel" id="wheel" style="background:conic-gradient(${segs.map((s, i) => `${s.color} ${(i * 360) / n}deg ${((i + 1) * 360) / n}deg`).join(',')})">
+            ${segs.map((s, i) => `<div class="wheel-item" style="transform:rotate(${(i * 360) / n + 180 / n - 90}deg)"><span>${esc(s.name)}</span></div>`).join('')}
+          </div>
+          <div class="pointer">抽奖</div>
+        </div>
+        ${poolEmpty
+          ? `<div class="form-error">奖品已全部送出，感谢参与！</div>`
+          : `<button class="btn primary btn-block" data-action="do-draw">开始抽奖</button>`}
+      </div>
+      <div class="card">
+        <div class="tiny muted mb8">奖品池余量</div>
+        ${stats.prizes.map((p) => `<div class="row between mb8"><span class="tiny">${esc(p.name)}</span><span class="tiny">${p.remain} / ${p.total}</span></div>`).join('')}
+      </div>
+      <div class="tiny muted center">总中奖概率 25%，每人仅可抽奖一次</div>`
+  };
+}
+
+function pageLotteryResult() {
+  const r = state.lottery;
+  if (!r) return { navbar: '抽奖结果', back: 'home', body: emptyState('暂无抽奖记录', '通关后即可参与抽奖', { action: 'goto', route: 'quiz', label: '去答题' }) };
+  const cls = `level-${r.level || 0}`;
+  const label = r.level ? `${r.level} 等奖` : '谢谢参与';
+  return {
+    navbar: '抽奖结果',
+    back: 'home',
+    body: `
+      <div class="result-card" style="box-shadow:0 4px 20px rgba(0,0,0,.06);border:1px solid var(--c-border)">
+        <div class="prize-icon ${cls}"></div>
+        <div style="font-size:20px;font-weight:600">${esc(r.message)}</div>
+        ${r.prizeName ? `<div class="tiny muted mt8">${esc(r.prizeName)}</div>` : `<div class="tiny muted mt8">再接再厉，感谢参与本次活动</div>`}
+        <div class="tiny muted mt16">中奖时间 ${esc(new Date().toLocaleString('zh-CN'))}</div>
+      </div>
+      <div class="row gap12 mt16">
+        <button class="btn" style="flex:1" data-action="goto" data-route="home">返回首页</button>
+        <button class="btn primary" style="flex:1" data-action="goto" data-route="my-prize">我的奖品</button>
+      </div>
+      <div class="card mt16"><div class="tiny muted">请凭姓名与工号到指定地点现场核销领取，名单以后台记录为准。</div></div>`
+  };
+}
+
+async function pageMyPrize() {
+  const my = await Data.getMyResult();
+  if (!my || !my.participant) {
+    return { navbar: '我的奖品', body: emptyState('尚未参与活动', '登记身份后即可开始答题', { action: 'go-register', label: '去登记' }) };
+  }
+  const p = my.participant;
+  const r = my.record;
+  const won = r && r.level;
+  return {
+    navbar: '我的奖品',
+    body: `
+      <div class="card">
+        <div class="row between">
+          <div><div style="font-weight:500">${esc(p.name)}</div><div class="tiny muted">工号 ${esc(p.empNo)}</div></div>
+          <span class="badge ${p.drawn ? 'green' : 'gray'}">${p.drawn ? '已抽奖' : '未抽奖'}</span>
+        </div>
+      </div>
+      ${won
+        ? `<div class="card" style="border-color:var(--c-success)">
+            <div class="row between mb8"><span class="badge ${r.level === 1 ? 'amber' : r.level === 2 ? 'blue' : 'green'}">${r.level} 等奖</span><span class="tiny muted">${esc(r.wonAt)}</span></div>
+            <div style="font-size:16px;font-weight:500">${esc(r.prizeName)}</div>
+            <div class="tiny muted mt8">请凭本人姓名与工号到 1 号楼 1 层前台核销领取</div>
+          </div>`
+        : `<div class="card">${emptyState(r ? '本次未中奖' : '尚未抽奖', r ? '感谢参与本次活动' : '答对 3 题通关后即可参与抽奖', r ? null : { action: 'goto', route: 'quiz', label: '去答题' })}</div>`}
+      <button class="btn btn-block" data-action="reset-me">退出当前身份（重新测试）</button>`
+  };
+}
+
+/* ============================================================
+ * 4. 渲染调度
+ * ==========================================================*/
+const RENDERERS = {
+  home: pageHome,
+  register: () => pageRegister(),
+  // 已有进行中的答题会话则直接渲染，避免选答案时重新抽题
+  quiz: () => (state.quiz && !state.quiz.result ? renderQuiz() : pageQuiz()),
+  'quiz-result': pageQuizResult,
+  lottery: pageLottery,
+  'lottery-result': pageLotteryResult,
+  'my-prize': pageMyPrize
+};
+
+async function render() {
+  const vp = $('#viewport');
+  const page = PAGES.find((p) => p.route === state.route);
+  if (page) state.side = page.side;
+
+  if (state.side === 'c') {
+    let out;
+    try {
+      out = await RENDERERS[state.route]();
+    } catch (e) {
+      out = { navbar: '出错了', body: `<div class="card">${skeleton()}</div><div class="form-error">${esc(e.message)}</div>` };
+    }
+    vp.innerHTML = `
+      <div class="phone">
+        <div class="phone-screen">
+          <div class="statusbar"><span>9:41</span><span>5G &nbsp;100%</span></div>
+          ${out.navbar ? `<div class="navbar">${out.back ? `<button class="back" data-action="goto" data-route="${out.back}">‹</button>` : ''}<div class="title">${esc(out.navbar)}</div></div>` : ''}
+          <div class="page-body">${out.body}</div>
+          ${out.tabbar ? `<div class="tabbar">
+            <button class="${state.route === 'home' ? 'on' : ''}" data-action="goto" data-route="home"><span class="dot"></span>首页</button>
+            <button class="${state.route === 'my-prize' ? 'on' : ''}" data-action="goto" data-route="my-prize"><span class="dot"></span>我的奖品</button>
+          </div>` : ''}
+          ${loadingMask()}
+        </div>
+      </div>`;
+  } else {
+    vp.innerHTML = await renderAdmin();
+  }
+
+  renderNav();
+  renderSidePanels();
+}
+
+function renderNav() {
+  const list = PAGES.filter((p) => p.side === state.side && p.nav);
+  $('#pageNav').innerHTML = list
+    .map((p) => `<button class="${p.route === state.route ? 'on' : ''}" data-action="goto" data-route="${p.route}">${p.layer} ${esc(p.name)}</button>`)
+    .join('');
+  document.querySelectorAll('#segClient button').forEach((b) => b.classList.toggle('on', b.dataset.side === state.side));
+}
+
+function renderSidePanels() {
+  const box = $('#sidePanels');
+  let html = '';
+
+  if (state.annoOpen) {
+    const a = ANNO[state.route] || {};
+    const page = PAGES.find((p) => p.route === state.route) || {};
+    html += `<div class="anno">
+      <div class="anno-box">
+        <h4>页面信息</h4>
+        <div class="anno-kv"><b>页面</b><span>${esc(page.name || '-')}（${esc(page.layer || '-')}）</span></div>
+        <div class="anno-kv"><b>路由</b><span>#/${esc(state.route)}</span></div>
+        <div class="anno-kv"><b>入口</b><span>${esc(a.entry || '-')}</span></div>
+        <div class="anno-kv"><b>跳转</b><span>${esc(a.jump || '-')}</span></div>
+        <div class="anno-kv"><b>状态</b><span>${esc(a.states || '-')}</span></div>
+      </div>
+      <div class="anno-box">
+        <h4>关键组件</h4>
+        <ul>${(a.comps || []).map(([k, v]) => `<li><b>${esc(k)}</b> — ${esc(v)}</li>`).join('')}</ul>
+      </div>
+    </div>`;
+  }
+
+  if (state.debugOpen) {
+    html += `<div class="debug">
+      <div class="debug-box">
+        <h4>状态模拟（验证四态）</h4>
+        <button data-action="dbg-force-error">▸ 强制下次请求失败（报错态）</button>
+        <button data-action="dbg-clear-questions">▸ 清空题库（空状态）</button>
+        <button data-action="dbg-clear-winners">▸ 清空中奖名单（空状态）</button>
+        <button data-action="dbg-see-skeleton">▸ 查看骨架屏（加载态）</button>
+        <div class="hint">点击后到对应页面查看效果</div>
+      </div>
+      <div class="debug-box">
+        <h4>抽奖算法验证</h4>
+        <button data-action="dbg-drain-1">▸ 一等奖清零（验证等级剔除）</button>
+        <button data-action="dbg-drain-all">▸ 全部奖品清零（验证奖池耗尽）</button>
+        <button data-action="dbg-sim">▸ 模拟 2000 次抽奖并输出统计</button>
+        <div class="hint" id="dbgOut">结果输出在此</div>
+      </div>
+      <div class="debug-box">
+        <h4>数据</h4>
+        <button data-action="dbg-reset">▸ 重置全部数据</button>
+        <button data-action="dbg-seed">▸ 生成已通关未抽奖的测试身份</button>
+        <div class="hint">对应 verify_lottery.mjs 中的用例场景</div>
+      </div>
+    </div>`;
+  }
+
+  box.innerHTML = html;
+}
+
+/* ============================================================
+ * 5. 路由
+ * ==========================================================*/
+function goto(route) {
+  state.route = route;
+  location.hash = '#/' + route;
+  render();
+}
+
+window.addEventListener('hashchange', () => {
+  const r = location.hash.replace('#/', '') || 'home';
+  if (r !== state.route) {
+    state.route = r;
+    render();
+  }
+});
+
+/* ============================================================
+ * 6. 管理后台页面
+ * ==========================================================*/
+const ADMIN_NAV = [
+  { route: 'admin-dashboard', name: '数据看板' },
+  { route: 'admin-questions', name: '题库管理' },
+  { route: 'admin-prizes', name: '奖品配置' },
+  { route: 'admin-winners', name: '获奖名单' }
+];
+const adminState = { q: { keyword: '', page: 1 }, w: { keyword: '', level: '' }, importErr: null };
+
+function renderAdminLogin(error = '') {
+  return `<div class="pc slim"><div style="padding:40px">
+    <div style="font-size:20px;font-weight:600;margin-bottom:4px">答题抽奖 · 管理后台</div>
+    <div class="tiny muted mb24">请使用管理员账号登录</div>
+    ${error ? `<div class="form-error">${esc(error)}</div>` : ''}
+    <div class="field"><label>账号</label><input id="adm-user" value="admin" placeholder="请输入账号"></div>
+    <div class="field"><label>密码</label><input id="adm-pass" type="password" value="admin123" placeholder="请输入密码"></div>
+    <button class="btn primary btn-block" data-action="admin-login-submit">登 录</button>
+    <div class="tiny muted center mt12">演示账号 admin / admin123，safety / safety123</div>
+  </div></div>`;
+}
+
+async function adminDashboard() {
+  const s = await Data.getStats();
+  const act = await Data.getActivity();
+  return `
+    <div class="stat-grid">
+      <div class="stat"><div class="n">${s.participants}</div><div class="l">参与人数</div></div>
+      <div class="stat"><div class="n">${s.examCount}</div><div class="l">答题人次</div></div>
+      <div class="stat"><div class="n">${s.passed}</div><div class="l">通关人数</div></div>
+      <div class="stat"><div class="n">${s.drawn}</div><div class="l">抽奖人数</div></div>
+      <div class="stat"><div class="n" style="color:var(--c-success)">${s.won}</div><div class="l">中奖人数</div></div>
+    </div>
+    <div class="card">
+      <div class="row between mb12"><b>奖品池</b><span class="tiny muted">已发 ${s.prizeTotal - s.prizeRemain} / 共 ${s.prizeTotal} 份</span></div>
+      ${s.prizes.map((p) => `
+        <div class="mb12">
+          <div class="row between tiny mb8"><span>${esc(p.name)} · ${esc(p.desc)}</span><span>${p.total - p.remain} / ${p.total}</span></div>
+          <div class="bar"><i style="width:${((p.total - p.remain) / p.total) * 100}%;background:${p.remain === 0 ? 'var(--c-danger)' : 'var(--c-primary)'}"></i></div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="row between mb8"><b>中奖率</b><span class="badge ${Math.abs(s.winRateActual - act.winRate) < 0.05 ? 'green' : 'amber'}">实际 ${(s.winRateActual * 100).toFixed(1)}% / 配置 ${(act.winRate * 100).toFixed(0)}%</span></div>
+      <div class="tiny muted">样本量较小时实际中奖率会明显偏离配置值，属正常现象；样本越大越接近 25%。</div>
+    </div>`;
+}
+
+async function adminQuestions() {
+  const { total, page, pageSize, list } = await Data.listQuestions({ keyword: adminState.q.keyword, page: adminState.q.page });
+  const stats = await Data.getQuestionStats();
+  if (total === 0 && !adminState.q.keyword) {
+    return `<div class="card">${emptyState('题库为空', '还没有导入任何题目，先导入 150 道单选题吧', { action: 'q-import-open', label: '导入题库' })}</div>`;
+  }
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  return `
+    <div class="card">
+      <div class="row between wrap gap12">
+        <div class="row gap12">
+          <input id="q-kw" value="${esc(adminState.q.keyword)}" placeholder="搜索题干或题号" style="padding:7px 12px;border:1px solid var(--c-border);border-radius:8px;width:220px">
+          <button class="btn" data-action="q-search">搜索</button>
+        </div>
+        <button class="btn primary" data-action="q-import-open">批量导入题库</button>
+      </div>
+      <div class="tiny muted mt12">共 ${total} 题（启用 ${stats.enabled} / 停用 ${stats.disabled}）· 分类：${stats.categories.map((c) => `${c.category} ${c.count}`).join('、')}</div>
+    </div>
+    ${total === 0 ? `<div class="card">${emptyState('没有匹配的题目', '换个关键词试试', null)}</div>` : `
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="tbl">
+        <thead><tr><th style="width:60px">题号</th><th>题干</th><th style="width:90px">分类</th><th style="width:60px">答案</th><th style="width:70px">状态</th><th style="width:70px">操作</th></tr></thead>
+        <tbody>
+          ${list.map((q) => `<tr>
+            <td>${q.no}</td>
+            <td title="${esc(q.title)}">${esc(q.title.length > 34 ? q.title.slice(0, 34) + '…' : q.title)}</td>
+            <td class="tiny muted">${esc(q.category)}</td>
+            <td><b>${esc(q.answer)}</b></td>
+            <td><span class="badge ${q.enabled ? 'green' : 'gray'}">${q.enabled ? '启用' : '停用'}</span></td>
+            <td><button class="btn" style="padding:3px 8px;font-size:12px" data-action="q-toggle" data-no="${q.no}" data-enabled="${q.enabled ? 0 : 1}">${q.enabled ? '停用' : '启用'}</button></td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="row between mt12">
+      <span class="tiny muted">第 ${page} / ${pages} 页</span>
+      <div class="row gap12">
+        <button class="btn" data-action="q-page" data-p="${page - 1}" ${page <= 1 ? 'disabled style="opacity:.4"' : ''}>上一页</button>
+        <button class="btn" data-action="q-page" data-p="${page + 1}" ${page >= pages ? 'disabled style="opacity:.4"' : ''}>下一页</button>
+      </div>
+    </div>`}`;
+}
+
+async function adminPrizes() {
+  const act = await Data.getActivity();
+  const s = await Data.getStats();
+  const modeLabel = { remain: '按剩余库存加权（推荐）', fixed: '固定权重 1:8:16', initial: '按初始库存比例 5:50:100' };
+  return `
+    <div class="card">
+      <div class="row between mb12"><b>奖项配置</b><span class="tiny muted">发出后自动扣减，归零即不再参与抽取</span></div>
+      ${s.prizes.map((p) => `
+        <div style="padding:12px 0;border-bottom:1px solid var(--c-border)">
+          <div class="row between mb8">
+            <div class="row gap12"><span class="badge ${p.level === 1 ? 'amber' : p.level === 2 ? 'blue' : 'green'}">${esc(p.name)}</span><span class="tiny">${esc(p.desc)}</span></div>
+            ${p.remain === 0 ? '<span class="badge red">已抽完</span>' : `<span class="tiny muted">剩余 ${p.remain}</span>`}
+          </div>
+          <div class="bar"><i style="width:${(p.remain / p.total) * 100}%;background:${p.remain === 0 ? 'var(--c-danger)' : 'var(--c-primary)'}"></i></div>
+          <div class="row gap12 mt8">
+            <span class="tiny muted">总量</span><input value="${p.total}" style="width:70px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px" data-prize-total="${p.level}">
+            <span class="tiny muted">剩余</span><input value="${p.remain}" style="width:70px;padding:4px 8px;border:1px solid var(--c-border);border-radius:6px" data-prize-remain="${p.level}">
+          </div>
+        </div>`).join('')}
+    </div>
+    <div class="card">
+      <div class="row between mb12"><b>抽奖策略</b><button class="btn primary" data-action="prize-save">保存配置</button></div>
+      <div class="field"><label>总中奖概率（0–1）</label><input id="cfg-rate" value="${act.winRate}"></div>
+      <div class="field"><label>中奖后等级分配策略</label>
+        <select id="cfg-mode" style="width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:8px">
+          ${Object.entries(modeLabel).map(([k, v]) => `<option value="${k}" ${act.weightMode === k ? 'selected' : ''}>${v}</option>`).join('')}
+        </select>
+      </div>
+      <div class="field"><label>奖品全部抽完后</label>
+        <select id="cfg-empty" style="width:100%;padding:10px 12px;border:1px solid var(--c-border);border-radius:8px">
+          <option value="close" ${act.poolEmptyBehavior === 'close' ? 'selected' : ''}>关闭抽奖入口，提示已全部送出</option>
+          <option value="still-draw" ${act.poolEmptyBehavior === 'still-draw' ? 'selected' : ''}>仍可点击，但必定谢谢参与</option>
+        </select>
+      </div>
+      <div class="tiny muted">当前策略：${esc(modeLabel[act.weightMode])}。修改后仅影响之后的抽奖，历史记录不变。</div>
+    </div>`;
+}
+
+async function adminWinners() {
+  const { total, page, pageSize, list } = await Data.listWinners({ keyword: adminState.w.keyword, level: adminState.w.level, page: adminState.w.page });
+  const s = await Data.getStats();
+  if (total === 0) {
+    return `<div class="card">${emptyState('暂无记录', adminState.w.level ? '当前筛选条件下没有记录' : '还没有人中奖，等待活动开始', null)}</div>`;
+  }
+  const pages = Math.max(1, Math.ceil(total / pageSize));
+  return `
+    <div class="card">
+      <div class="row between wrap gap12">
+        <div class="row gap12">
+          <input id="w-kw" value="${esc(adminState.w.keyword)}" placeholder="搜索姓名或工号" style="padding:7px 12px;border:1px solid var(--c-border);border-radius:8px;width:200px">
+          <button class="btn" data-action="w-search">搜索</button>
+          <select id="w-lv" style="padding:7px 12px;border:1px solid var(--c-border);border-radius:8px">
+            <option value="">全部记录</option>
+            <option value="won" ${adminState.w.level === 'won' ? 'selected' : ''}>仅中奖</option>
+            <option value="1" ${adminState.w.level === '1' ? 'selected' : ''}>一等奖</option>
+            <option value="2" ${adminState.w.level === '2' ? 'selected' : ''}>二等奖</option>
+            <option value="3" ${adminState.w.level === '3' ? 'selected' : ''}>三等奖</option>
+          </select>
+          <button class="btn" data-action="w-filter">筛选</button>
+        </div>
+        <button class="btn primary" data-action="w-export">导出 CSV</button>
+      </div>
+      <div class="tiny muted mt12">中奖 ${s.won} 人 · 抽奖 ${s.drawn} 人 · 实际中奖率 ${(s.winRateActual * 100).toFixed(1)}%</div>
+    </div>
+    <div class="card" style="padding:0;overflow:auto">
+      <table class="tbl">
+        <thead><tr><th>姓名</th><th>工号</th><th>奖项</th><th>奖品</th><th>中奖时间</th></tr></thead>
+        <tbody>
+          ${list.map((r) => `<tr>
+            <td>${esc(r.name)}</td>
+            <td class="tiny muted">${esc(r.empNo)}</td>
+            <td>${r.level ? `<span class="badge ${r.level === 1 ? 'amber' : r.level === 2 ? 'blue' : 'green'}">${r.level} 等奖</span>` : '<span class="badge gray">未中奖</span>'}</td>
+            <td class="tiny">${r.prizeName ? esc(r.prizeName) : '—'}</td>
+            <td class="tiny muted">${esc(r.wonAt)}</td>
+          </tr>`).join('')}
+        </tbody>
+      </table>
+    </div>
+    <div class="row between mt12">
+      <span class="tiny muted">共 ${total} 条，第 ${page} / ${pages} 页</span>
+      <div class="row gap12">
+        <button class="btn" data-action="w-page" data-p="${page - 1}" ${page <= 1 ? 'disabled style="opacity:.4"' : ''}>上一页</button>
+        <button class="btn" data-action="w-page" data-p="${page + 1}" ${page >= pages ? 'disabled style="opacity:.4"' : ''}>下一页</button>
+      </div>
+    </div>`;
+}
+
+async function renderAdmin() {
+  if (state.route !== 'admin-login' && !Data.currentAdmin()) state.route = 'admin-login';
+  if (state.route === 'admin-login') return renderAdminLogin();
+
+  let body = '';
+  try {
+    if (state.route === 'admin-dashboard') body = await adminDashboard();
+    else if (state.route === 'admin-questions') body = await adminQuestions();
+    else if (state.route === 'admin-prizes') body = await adminPrizes();
+    else if (state.route === 'admin-winners') body = await adminWinners();
+  } catch (e) {
+    body = `<div class="card">${skeleton(3)}</div><div class="form-error">加载失败：${esc(e.message)}</div>
+      <button class="btn primary" data-action="goto" data-route="${state.route}">重新加载</button>`;
+  }
+
+  const page = PAGES.find((p) => p.route === state.route) || {};
+  const admin = Data.currentAdmin() || { name: '-' };
+  return `<div class="pc"><div class="admin-layout">
+    <aside class="admin-side">
+      <div class="logo">答题抽奖 · 后台</div>
+      ${ADMIN_NAV.map((n) => `<a href="javascript:;" class="${state.route === n.route ? 'on' : ''}" data-action="goto" data-route="${n.route}">${n.name}</a>`).join('')}
+      <div style="margin-top:auto;padding:12px 16px;border-top:1px solid #444441">
+        <div class="tiny" style="color:#888780">${esc(admin.name)}</div>
+        <a href="javascript:;" data-action="admin-logout" style="padding:6px 0;color:#B4B2A9">退出登录</a>
+      </div>
+    </aside>
+    <main class="admin-main" style="position:relative">
+      <div class="admin-head"><h2>${esc(page.name || '')}</h2><span class="tiny muted">${esc(page.layer || '')}</span></div>
+      ${body}
+      ${loadingMask()}
+    </main>
+  </div></div>`;
+}
+
+/* ============================================================
+ * 7. 弹窗
+ * ==========================================================*/
+function openModal(html) {
+  closeModal();
+  const d = document.createElement('div');
+  d.className = 'modal';
+  d.id = 'modalRoot';
+  d.innerHTML = `<div class="modal-box">${html}</div>`;
+  document.body.appendChild(d);
+}
+function closeModal() {
+  const m = $('#modalRoot');
+  if (m) m.remove();
+}
+
+function openImportModal() {
+  const demo = `题号,题干,选项A,选项B,选项C,选项D,正确答案,解析
+1,手提式干粉灭火器的报废年限是,A.5年,B.8年,C.10年,D.12年,C,GB 50444 规定为 10 年
+2,安全电压在潮湿环境中限值是,A.36V,B.24V,C.12V,D.6V,C,特别危险环境限值为 12V
+3,本题答案故意写错用于演示校验,A.甲,B.乙,C.丙,D.丁,E,演示非法答案被拦截
+4,本题选项重复用于演示校验,A.甲,B.甲,C.丙,D.丁,A,演示重复选项被拦截
+5,灭火器的压力表指针在绿区表示？,A.压力不足,B.压力正常,C.压力过高,D.已失效,B,与题干重复会被拦截`;
+  openModal(`
+    <div class="modal-head"><h3>批量导入题库</h3><button class="btn" data-action="q-import-close">✕</button></div>
+    <div class="modal-body">
+      <div class="tiny muted mb12">支持 CSV / Excel 复制粘贴。表头顺序：题号,题干,选项A,选项B,选项C,选项D,正确答案,解析</div>
+      <textarea id="imp-text" rows="10" style="width:100%;padding:10px;border:1px solid var(--c-border);border-radius:8px;font-family:monospace;font-size:12px" placeholder="在此粘贴 CSV 内容，首行为表头"></textarea>
+      <div class="row gap12 mt12">
+        <button class="btn" data-action="q-import-demo">载入示例数据（含 2 条非法）</button>
+        <select id="imp-mode" style="padding:7px 10px;border:1px solid var(--c-border);border-radius:8px">
+          <option value="append">增量追加</option>
+          <option value="skip">跳过重复</option>
+          <option value="overwrite">全量覆盖</option>
+        </select>
+      </div>
+    </div>
+    <div class="modal-foot">
+      <button class="btn" data-action="q-import-close">取消</button>
+      <button class="btn primary" data-action="q-import-confirm">开始导入</button>
+    </div>`);
+  window.__demoCsv = demo;
+}
+
+function parseCsv(text) {
+  const lines = String(text).trim().split(/\r?\n/).filter(Boolean);
+  if (lines.length < 2) return [];
+  const heads = lines[0].split(/[,\t]/).map((s) => s.trim());
+  return lines.slice(1).map((line) => {
+    const cells = line.split(/[,\t]/).map((s) => s.trim());
+    const row = {};
+    heads.forEach((h, i) => (row[h] = cells[i] ?? ''));
+    return row;
+  });
+}
+
+/* ============================================================
+ * 8. 事件总线
+ * ==========================================================*/
+async function onAction(e) {
+  const el = e.target.closest('[data-action]');
+  if (!el) return;
+  const a = el.dataset.action;
+  const route = el.dataset.route;
+
+  // ---- 导航 ----
+  if (a === 'goto') return goto(route);
+  if (a === 'go-register') return goto('register');
+
+  // ---- 端切换 ----
+  if (a === 'switch-side') {
+    state.side = el.dataset.side;
+    state.route = state.side === 'c' ? 'home' : 'admin-login';
+    return goto(state.route);
+  }
+
+  // ---- 登记 ----
+  if (a === 'fill-demo') {
+    $('#ipt-name').value = el.dataset.name;
+    $('#ipt-emp').value = el.dataset.emp;
+    return;
+  }
+  if (a === 'submit-register') {
+    const name = $('#ipt-name').value.trim();
+    const emp = $('#ipt-emp').value.trim();
+    let ok = true;
+    $('#f-name').classList.toggle('invalid', !(name.length >= 2 && name.length <= 10));
+    if (!(name.length >= 2 && name.length <= 10)) ok = false;
+    $('#f-emp').classList.toggle('invalid', !/^[A-Za-z0-9]{4,12}$/.test(emp));
+    if (!/^[A-Za-z0-9]{4,12}$/.test(emp)) ok = false;
+    if (!ok) return;
+    try {
+      const res = await call(() => Data.register(name, emp), { loading: '登记中…' });
+      state.me = res.participant;
+      if (res.warning) toast(res.warning, 'err');
+      toast(res.reused ? '已识别你的身份' : '登记成功', 'ok');
+      goto('quiz');
+    } catch (_) {}
+    return;
+  }
+  if (a === 'reset-me') {
+    Data.logoutParticipant();
+    state.me = null;
+    state.quiz = null;
+    state.lottery = null;
+    toast('已退出身份');
+    return goto('home');
+  }
+
+  // ---- 答题 ----
+  if (a === 're-quiz') {
+    state.quiz = null; // 清空会话，下次进入重新抽题
+    return goto('quiz');
+  }
+  if (a === 'pick') {
+    state.quiz.answers[state.quiz.index] = el.dataset.key;
+    return render();
+  }
+  if (a === 'prev-q') {
+    if (state.quiz.index > 0) state.quiz.index--;
+    return render();
+  }
+  if (a === 'next-q') {
+    if (state.quiz.index < state.quiz.questions.length - 1) state.quiz.index++;
+    return render();
+  }
+  if (a === 'submit-quiz') {
+    const q = state.quiz;
+    if (q.answers.some((x) => x === null)) return toast('还有题目未作答', 'err');
+    try {
+      const r = await call(() => Data.submitExam(q.questions.map((x) => x.no), q.answers), { loading: '正在判分…' });
+      q.result = r;
+      state.me = r.participant;
+      goto('quiz-result');
+    } catch (_) {}
+    return;
+  }
+
+  // ---- 抽奖 ----
+  if (a === 'do-draw') {
+    const btn = el;
+    btn.disabled = true;
+    btn.textContent = '抽奖中…';
+    const wheel = $('#wheel');
+    let deg = 0;
+    wheel.style.transition = 'none';
+    const timer = setInterval(() => {
+      deg += 14;
+      wheel.style.transform = `rotate(${deg}deg)`;
+    }, 16);
+    try {
+      const r = await Data.drawLottery();
+      clearInterval(timer);
+      state.lottery = r;
+      const n = 4; // 与 pageLottery 扇区数一致，保证转盘停在中奖对应扇区
+      const idx = r.level ? r.level - 1 : 3;
+      const target = (360 - (idx + 0.5) * (360 / n) + 360) % 360;
+      const delta = ((target - (deg % 360)) % 360 + 360) % 360 + 720;
+      wheel.style.transition = 'transform 1.8s cubic-bezier(.12,.85,.32,1)';
+      wheel.style.transform = `rotate(${deg + delta}deg)`;
+      setTimeout(() => goto('lottery-result'), 2000);
+    } catch (err) {
+      clearInterval(timer);
+      btn.disabled = false;
+      btn.textContent = '开始抽奖';
+      toast(err.message || '抽奖失败', 'err');
+    }
+    return;
+  }
+
+  // ---- 后台登录 ----
+  if (a === 'admin-login-submit') {
+    const u = $('#adm-user').value.trim();
+    const p = $('#adm-pass').value;
+    try {
+      await call(() => Data.adminLogin(u, p), { loading: '登录中…' });
+      toast('登录成功', 'ok');
+      goto('admin-dashboard');
+    } catch (_) {}
+    return;
+  }
+  if (a === 'admin-logout') {
+    Data.adminLogout();
+    state.admin = null;
+    return goto('admin-login');
+  }
+
+  // ---- 题库管理 ----
+  if (a === 'q-search') {
+    adminState.q.keyword = $('#q-kw').value.trim();
+    adminState.q.page = 1;
+    return render();
+  }
+  if (a === 'q-page') {
+    adminState.q.page = Math.max(1, Number(el.dataset.p));
+    return render();
+  }
+  if (a === 'q-toggle') {
+    try {
+      await Data.toggleQuestion(el.dataset.no, el.dataset.enabled === '1');
+      toast('已更新', 'ok');
+      render();
+    } catch (_) {}
+    return;
+  }
+  if (a === 'q-import-open') return openImportModal();
+  if (a === 'q-import-close') return closeModal();
+  if (a === 'q-import-demo') {
+    $('#imp-text').value = window.__demoCsv;
+    return;
+  }
+  if (a === 'q-import-confirm') {
+    const rows = parseCsv($('#imp-text').value);
+    const mode = $('#imp-mode').value;
+    try {
+      const res = await call(() => Data.importQuestions(rows, mode), { loading: '正在导入…' });
+      closeModal();
+      adminState.q.page = 1;
+      if (res.failed === 0) {
+        toast(`导入成功 ${res.success} 条`, 'ok');
+      } else {
+        openModal(`
+          <div class="modal-head"><h3>导入完成（部分失败）</h3><button class="btn" data-action="q-import-close">✕</button></div>
+          <div class="modal-body">
+            <div class="row gap12 mb12">
+              <span class="badge green">成功 ${res.success} 条</span>
+              <span class="badge red">失败 ${res.failed} 条</span>
+            </div>
+            <table class="tbl"><thead><tr><th style="width:70px">行号</th><th>失败原因</th></tr></thead>
+              <tbody>${res.errors.map((x) => `<tr><td>${x.lineNo}</td><td class="tiny">${esc(x.reason)}</td></tr>`).join('')}</tbody></table>
+          </div>
+          <div class="modal-foot"><button class="btn primary" data-action="q-import-close">知道了</button></div>`);
+      }
+      render();
+    } catch (_) {}
+    return;
+  }
+
+  // ---- 奖品配置 ----
+  if (a === 'prize-save') {
+    try {
+      const rate = Number($('#cfg-rate').value);
+      if (!(rate >= 0 && rate <= 1)) return toast('中奖概率应在 0 到 1 之间', 'err');
+      await call(() => Data.updateActivity({ winRate: rate, weightMode: $('#cfg-mode').value, poolEmptyBehavior: $('#cfg-empty').value }), { loading: '保存中…' });
+      for (const el2 of document.querySelectorAll('[data-prize-total]')) {
+        await Data.updatePrize(el2.dataset.prizeTotal, { total: Number(el2.value) });
+      }
+      for (const el2 of document.querySelectorAll('[data-prize-remain]')) {
+        await Data.updatePrize(el2.dataset.prizeRemain, { remain: Number(el2.value) });
+      }
+      toast('配置已保存', 'ok');
+      render();
+    } catch (_) {}
+    return;
+  }
+
+  // ---- 名单 ----
+  if (a === 'w-search') {
+    adminState.w.keyword = $('#w-kw').value.trim();
+    return render();
+  }
+  if (a === 'w-filter') {
+    adminState.w.level = $('#w-lv').value;
+    return render();
+  }
+  if (a === 'w-page') {
+    adminState.w.page = Math.max(1, Number(el.dataset.p));
+    return render();
+  }
+  if (a === 'w-export') {
+    const csv = await Data.exportWinnersCsv();
+    const blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a2 = document.createElement('a');
+    a2.href = url;
+    a2.download = `获奖名单_${new Date().toISOString().slice(0, 10)}.csv`;
+    a2.click();
+    URL.revokeObjectURL(url);
+    toast('已导出 CSV', 'ok');
+    return;
+  }
+
+  // ---- 顶栏 ----
+  if (a === 'toggle-anno') {
+    state.annoOpen = !state.annoOpen;
+    renderSidePanels();
+    $('#btnAnno').classList.toggle('on', state.annoOpen);
+    return;
+  }
+  if (a === 'toggle-debug') {
+    state.debugOpen = !state.debugOpen;
+    renderSidePanels();
+    $('#btnDebug').classList.toggle('on', state.debugOpen);
+    return;
+  }
+
+  // ---- 调试面板 ----
+  if (a === 'dbg-force-error') { state.forceError = true; return toast('已设置：下次请求将失败'); }
+  if (a === 'dbg-clear-questions') {
+    TEST_UTILS.reset();
+    const all = await Data.listQuestions({ pageSize: 9999 });
+    for (const q of all.list) await Data.deleteQuestion(q.no);
+    toast('题库已清空，切到题库管理查看空状态', 'ok');
+    return render();
+  }
+  if (a === 'dbg-clear-winners') {
+    TEST_UTILS.reset();
+    state.me = null;
+    state.quiz = null;
+    state.lottery = null;
+    toast('数据已重置（名单为空）', 'ok');
+    return render();
+  }
+  if (a === 'dbg-see-skeleton') {
+    const vp = $('#viewport');
+    vp.innerHTML = `<div class="phone"><div class="phone-screen"><div class="statusbar"><span>9:41</span><span>5G</span></div>
+      <div class="navbar"><div class="title">加载态</div></div>
+      <div class="page-body">${skeleton(4)}</div>${loadingMask()}</div></div>`;
+    $('#loadingMask').style.display = 'flex';
+    $('#loadingMask').querySelector('.loading-text').textContent = '正在加载…';
+    setTimeout(() => render(), 2200);
+    return;
+  }
+  if (a === 'dbg-drain-1') {
+    TEST_UTILS.drainPrize(1);
+    toast('一等奖库存已清零，去抽奖不会中一等奖', 'ok');
+    return render();
+  }
+  if (a === 'dbg-drain-all') {
+    [1, 2, 3].forEach((l) => TEST_UTILS.drainPrize(l));
+    toast('全部奖品已清零，抽奖页将提示已全部送出', 'ok');
+    return render();
+  }
+  if (a === 'dbg-sim') {
+    const r = TEST_UTILS.simulateDraws(2000);
+    await render(); // 先重建面板，再写入结果
+    const out = $('#dbgOut');
+    if (out) {
+      out.innerHTML = `模拟 ${r.times} 次：中奖 ${r.won} 次（${(r.actualWinRate * 100).toFixed(2)}%）<br>
+        一等 ${r.byLevel[1]} / 二等 ${r.byLevel[2]} / 三等 ${r.byLevel[3]}<br>
+        超发 <b style="color:${r.oversold ? '#F09595' : '#97C459'}">${r.oversold}</b> 件 · 降级 ${r.fallback} 次<br>
+        剩余：${r.remain.map((x) => `${x.level}等${x.remain}`).join(' ')}<br>
+        <span style="color:#888780">模拟会消耗真实奖池，如需重来请点「重置全部数据」</span>`;
+    }
+    toast('模拟完成', 'ok');
+    return;
+  }
+  if (a === 'dbg-reset') {
+    TEST_UTILS.reset();
+    state.me = null;
+    state.quiz = null;
+    state.lottery = null;
+    toast('全部数据已重置', 'ok');
+    return render();
+  }
+  if (a === 'dbg-seed') {
+    const p = TEST_UTILS.seedParticipant('快捷测试', 'T' + Math.floor(1000 + Math.random() * 8999), { passed: true });
+    state.me = p;
+    toast(`已生成测试身份 ${p.name} / ${p.empNo}（已通关未抽奖）`, 'ok');
+    return render();
+  }
+}
+
+/* ============================================================
+ * 9. 启动
+ * ==========================================================*/
+async function init() {
+  state.me = await Data.currentParticipant();
+  state.route = location.hash.replace('#/', '') || 'home';
+  document.addEventListener('click', onAction);
+  $('#btnAnno').setAttribute('data-action', 'toggle-anno');
+  $('#btnDebug').setAttribute('data-action', 'toggle-debug');
+  render();
+}
+init();
+</script>
+</body>
+</html>
