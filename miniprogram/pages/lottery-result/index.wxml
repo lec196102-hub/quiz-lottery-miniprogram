@@ -1,0 +1,9 @@
+<view class="container">
+  <view class="card result {{won ? 'ok' : 'fail'}}">
+    <view class="big">{{won ? '🎉 ' + prizeName : '谢谢参与'}}</view>
+    <view class="tip">{{won ? '请凭工号到现场领取奖品' : message || '很遗憾，本次未中奖，感谢参与！'}}</view>
+  </view>
+
+  <button class="btn primary block mt24" bindtap="goPrize">查看我的奖品</button>
+  <button class="btn block mt16" bindtap="goHome">返回首页</button>
+</view>
