@@ -1,0 +1,34 @@
+{
+  "pages": [
+    "pages/home/index",
+    "pages/register/index",
+    "pages/quiz/index",
+    "pages/quiz-result/index",
+    "pages/lottery/index",
+    "pages/lottery-result/index",
+    "pages/my-prize/index",
+    "pages/admin-login/index",
+    "pages/admin-dashboard/index",
+    "pages/admin-questions/index",
+    "pages/admin-prizes/index",
+    "pages/admin-winners/index"
+  ],
+  "window": {
+    "navigationBarTitleText": "答题抽奖",
+    "navigationBarBackgroundColor": "#185FA5",
+    "navigationBarTextStyle": "white",
+    "backgroundColor": "#f1efe8"
+  },
+  "tabBar": {
+    "color": "#888780",
+    "selectedColor": "#185FA5",
+    "backgroundColor": "#ffffff",
+    "borderStyle": "black",
+    "list": [
+      { "pagePath": "pages/home/index", "text": "首页" },
+      { "pagePath": "pages/my-prize/index", "text": "我的奖品" }
+    ]
+  },
+  "style": "v2",
+  "sitemapLocation": "sitemap.json"
+}
