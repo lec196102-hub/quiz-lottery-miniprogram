@@ -1,0 +1,21 @@
+<view class="container">
+  <view class="card">
+    <view class="form-title">参与前请先登记</view>
+    <view class="muted">姓名与工号用于核对抽奖资格，每人仅可抽奖一次。</view>
+
+    <view class="field mt24">
+      <view class="label">姓名</view>
+      <input class="input" placeholder="请输入真实姓名（2–10 字）" value="{{name}}" bindinput="inputName" maxlength="10" />
+    </view>
+    <view class="field mt16">
+      <view class="label">工号</view>
+      <input class="input" placeholder="4–12 位字母或数字" value="{{empNo}}" bindinput="inputEmp" maxlength="12" />
+    </view>
+
+    <view wx:if="{{error}}" class="form-error">{{error}}</view>
+
+    <button class="btn primary block mt24" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '提交中…' : '提交并去答题'}}
+    </button>
+  </view>
+</view>
