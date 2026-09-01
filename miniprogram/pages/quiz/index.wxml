@@ -1,0 +1,31 @@
+<view class="container" wx:if="{{loaded}}">
+  <view class="progress card">
+    <view class="row between">
+      <text class="muted">第 {{current+1}} / {{questions.length}} 题</text>
+      <text class="muted">已答 {{Object.keys(answers).length}} / {{questions.length}}</text>
+    </view>
+    <view class="bar"><view class="bar-fill" style="width: {{(current+1)/questions.length*100}}%"></view></view>
+  </view>
+
+  <view class="card">
+    <view class="q-cat badge blue">{{questions[current].category}}</view>
+    <view class="q-title mt12">{{questions[current].title}}</view>
+
+    <view class="opts mt16">
+      <view class="opt {{answers[questions[current].no]==='A'?'sel':''}}" data-no="{{questions[current].no}}" data-opt="A" bindtap="select">{{questions[current].options.A}}</view>
+      <view class="opt {{answers[questions[current].no]==='B'?'sel':''}}" data-no="{{questions[current].no}}" data-opt="B" bindtap="select">{{questions[current].options.B}}</view>
+      <view class="opt {{answers[questions[current].no]==='C'?'sel':''}}" data-no="{{questions[current].no}}" data-opt="C" bindtap="select">{{questions[current].options.C}}</view>
+      <view class="opt {{answers[questions[current].no]==='D'?'sel':''}}" data-no="{{questions[current].no}}" data-opt="D" bindtap="select">{{questions[current].options.D}}</view>
+    </view>
+  </view>
+
+  <view class="row gap mt24">
+    <button class="btn block" bindtap="prev" disabled="{{current===0}}">上一题</button>
+    <button wx:if="{{current < questions.length-1}}" class="btn primary block" bindtap="next">下一题</button>
+    <button wx:else class="btn primary block" bindtap="submit" disabled="{{submitting}}">{{submitting ? '提交中…' : '交卷'}}</button>
+  </view>
+</view>
+
+<view class="container" wx:else>
+  <view class="card center muted">题目加载中…</view>
+</view>
