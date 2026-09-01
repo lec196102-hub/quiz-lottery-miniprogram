@@ -1,0 +1,7 @@
+.result { text-align: center; padding: 48rpx 28rpx; }
+.result .big { font-size: 40rpx; font-weight: 800; line-height: 1.5; }
+.result.ok .big { color: var(--success); }
+.result.fail .big { color: var(--text2); }
+.result .tip { margin-top: 16rpx; font-size: 25rpx; color: var(--text2); }
+.result .time { margin-top: 12rpx; font-size: 23rpx; color: var(--text2); }
+.info .row { padding: 6rpx 0; }
