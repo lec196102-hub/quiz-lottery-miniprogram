@@ -1,0 +1,16 @@
+<view class="container">
+  <view class="card result {{pass ? 'ok' : 'fail'}}">
+    <view class="big">{{pass ? '✓ 通关' : '未通关'}}</view>
+    <view class="score">答对 {{correct}} / {{total}} 题（通关需 {{passScore}} 题）</view>
+    <view class="tip">{{pass ? '恭喜，你已获得抽奖资格！' : '再接再厉，可再次挑战答题。'}}</view>
+  </view>
+
+  <block wx:if="{{pass}}">
+    <button class="btn primary block mt24" bindtap="goLottery">去抽奖</button>
+    <button class="btn block mt16" bindtap="goHome">返回首页</button>
+  </block>
+  <block wx:else>
+    <button class="btn primary block mt24" bindtap="retry">再答一次</button>
+    <button class="btn block mt16" bindtap="goHome">返回首页</button>
+  </block>
+</view>
