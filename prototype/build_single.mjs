@@ -24,7 +24,7 @@ const injection = 'const __m = ' + merged + ';\nconst Data = __m.Data, BizError 
 
 // 替换 index.html 中对 ./data.js 的 import 行（可能跨多行）
 const before = html.length;
-html = html.replace(/import\s+[\s\S]*?\s+from\s*['"]\.\/data\.js['"]\s*;?/g, merged);
+html = html.replace(/import\s+[\s\S]*?\s+from\s*['"]\.\/data\.js['"]\s*;?/g, injection);
 const after = html.length;
 
 if (after === before) {
