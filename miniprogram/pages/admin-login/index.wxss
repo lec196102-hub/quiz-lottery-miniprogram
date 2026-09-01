@@ -1,0 +1,2 @@
+.form-title { font-size: 34rpx; font-weight: 700; }
+.field .label { font-size: 25rpx; color: var(--text2); margin-bottom: 10rpx; }
