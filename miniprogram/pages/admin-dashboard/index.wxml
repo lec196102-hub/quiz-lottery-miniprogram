@@ -1,0 +1,42 @@
+<view class="container" wx:if="{{stats}}">
+  <view class="card head">
+    <view class="row between">
+      <view>
+        <view class="h-title">数据概览</view>
+        <view class="muted">管理员：{{admin}}</view>
+      </view>
+      <button class="btn" size="mini" bindtap="logout">退出</button>
+    </view>
+  </view>
+
+  <view class="card grid">
+    <view class="m"><view class="n">{{stats.participants}}</view><view class="l">参与人数</view></view>
+    <view class="m"><view class="n">{{stats.passed}}</view><view class="l">通关人数</view></view>
+    <view class="m"><view class="n">{{stats.drawn}}</view><view class="l">已抽奖</view></view>
+    <view class="m"><view class="n">{{stats.won}}</view><view class="l">中奖人数</view></view>
+    <view class="m"><view class="n">{{stats.prizeRemain}}/{{stats.prizeTotal}}</view><view class="l">奖品余量</view></view>
+    <view class="m"><view class="n">{{stats.winRateActual*100 ? stats.winRateActual*100 : 0}}%</view><view class="l">实际中奖率</view></view>
+  </view>
+
+  <view class="card">
+    <view class="sec-title">奖品池</view>
+    <view class="pool-row" wx:for="{{stats.prizes}}" wx:key="level">
+      <text>{{item.name}} · {{item.desc}}</text>
+      <text class="badge {{item.remain>0?'green':'gray'}}">剩 {{item.remain}}/{{item.total}}</text>
+    </view>
+  </view>
+
+  <view class="card menu">
+    <view class="menu-item" data-url="/pages/admin-questions/index" bindtap="go">
+      <text>题库管理</text><text class="arrow">›</text>
+    </view>
+    <view class="menu-item" data-url="/pages/admin-prizes/index" bindtap="go">
+      <text>奖品与规则</text><text class="arrow">›</text>
+    </view>
+    <view class="menu-item" data-url="/pages/admin-winners/index" bindtap="go">
+      <text>中奖名单</text><text class="arrow">›</text>
+    </view>
+  </view>
+</view>
+
+<view class="container" wx:else><view class="card center muted">加载中…</view></view>
