@@ -1,0 +1,22 @@
+<view class="container">
+  <block wx:if="{{loaded && drawn}}">
+    <view class="card result {{record.level ? 'ok' : 'fail'}}">
+      <view class="big">{{record.level ? '🏆 ' + record.prizeName : '谢谢参与'}}</view>
+      <view class="tip">{{record.level ? '请凭工号到现场领取奖品' : '很遗憾本次未中奖，感谢参与！'}}</view>
+      <view wx:if="{{wonAtText}}" class="time">中奖时间：{{wonAtText}}</view>
+    </view>
+    <view class="card info">
+      <view class="row between"><text class="muted">姓名</text><text>{{participant.name}}</text></view>
+      <view class="row between mt8"><text class="muted">工号</text><text>{{participant.empNo}}</text></view>
+      <view class="row between mt8"><text class="muted">答题状态</text><text>{{participant.passed ? '已通关' : '未通关'}}</text></view>
+    </view>
+  </block>
+
+  <block wx:elif="{{loaded}}">
+    <view class="card center muted">你还没有参与抽奖</view>
+    <button class="btn primary block mt24" bindtap="goDraw">去抽奖</button>
+    <button class="btn block mt16" bindtap="goHome">返回首页</button>
+  </block>
+
+  <view wx:else class="card center muted">加载中…</view>
+</view>
