@@ -1,0 +1,31 @@
+.wheel-wrap { position: relative; width: 520rpx; height: 520rpx; margin: 40rpx auto; }
+.wheel {
+  position: absolute; inset: 0; border-radius: 50%;
+  background: conic-gradient(#e23b3b 0 25%, #f0883e 25% 50%, #2f9e54 50% 75%, #9aa0a6 75% 100%);
+  box-shadow: 0 6rpx 24rpx rgba(0,0,0,.12); overflow: hidden;
+}
+.wheel.spin { animation: spin 1.6s cubic-bezier(.2,.8,.2,1); }
+@keyframes spin { from { transform: rotate(0); } to { transform: rotate(1440deg); } }
+.seg {
+  position: absolute; width: 50%; height: 50%; color: #fff;
+  font-size: 26rpx; font-weight: 700; display: flex; align-items: center; justify-content: center;
+}
+.s1 { top: 0; left: 0; }
+.s2 { top: 0; right: 0; }
+.s3 { bottom: 0; left: 0; }
+.s4 { bottom: 0; right: 0; }
+.pointer {
+  position: absolute; top: -14rpx; left: 50%; transform: translateX(-50%);
+  width: 0; height: 0; border-left: 22rpx solid transparent; border-right: 22rpx solid transparent;
+  border-top: 34rpx solid #185FA5; z-index: 3;
+}
+.wheel-center {
+  position: absolute; top: 50%; left: 50%; transform: translate(-50%,-50%);
+  width: 150rpx; height: 150rpx; border-radius: 50%; background: #fff; z-index: 2;
+  display: flex; align-items: center; justify-content: center; text-align: center;
+  font-size: 26rpx; font-weight: 700; color: var(--primary); box-shadow: 0 2rpx 10rpx rgba(0,0,0,.18);
+}
+.pool-title { font-weight: 600; margin-bottom: 12rpx; }
+.pool-row { display: flex; justify-content: space-between; align-items: center; padding: 14rpx 0; border-bottom: 1rpx solid var(--border); }
+.pool-row:last-child { border-bottom: none; }
+.amber { color: var(--warn); font-size: 26rpx; }
