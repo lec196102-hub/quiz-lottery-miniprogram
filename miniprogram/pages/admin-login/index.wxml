@@ -1,0 +1,23 @@
+<view class="container">
+  <view class="card">
+    <view class="form-title">管理后台登录</view>
+    <view class="muted">仅限授权管理员访问。</view>
+
+    <view class="field mt24">
+      <view class="label">账号</view>
+      <input class="input" placeholder="管理员账号" value="{{user}}" bindinput="inputUser" />
+    </view>
+    <view class="field mt16">
+      <view class="label">密码</view>
+      <input class="input" placeholder="密码" password value="{{pass}}" bindinput="inputPass" />
+    </view>
+
+    <view wx:if="{{error}}" class="form-error">{{error}}</view>
+
+    <button class="btn primary block mt24" bindtap="submit" disabled="{{submitting}}">
+      {{submitting ? '登录中…' : '登录'}}
+    </button>
+
+    <view class="muted mt16 center">演示账号：admin / admin123</view>
+  </view>
+</view>
