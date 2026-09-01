@@ -1,0 +1,18 @@
+.hero {
+  background: linear-gradient(135deg, #185FA5, #2b86d8);
+  color: #fff;
+}
+.hero-title { font-size: 38rpx; font-weight: 700; }
+.hero-desc { margin-top: 12rpx; font-size: 25rpx; opacity: .92; line-height: 1.6; }
+
+.stats { display: flex; justify-content: space-around; text-align: center; }
+.stat-num { font-size: 40rpx; font-weight: 700; color: var(--primary); }
+.stat-label { font-size: 23rpx; color: var(--text2); margin-top: 4rpx; }
+
+.status { text-align: center; }
+.status-label { font-size: 22rpx; color: var(--text2); }
+.status-text { font-size: 32rpx; font-weight: 600; margin-top: 8rpx; }
+.status.gray .status-text { color: var(--text2); }
+.status.amber .status-text { color: var(--warn); }
+.status.green .status-text { color: var(--success); }
+.status.blue .status-text { color: var(--primary); }
