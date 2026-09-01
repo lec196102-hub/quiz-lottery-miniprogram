@@ -1,0 +1,48 @@
+<view class="container">
+  <view class="card search">
+    <view class="row gap">
+      <input class="input" placeholder="搜索题号/题干" value="{{keyword}}" bindinput="onSearch" confirm-type="search" bindconfirm="doSearch" />
+      <button class="btn primary" size="mini" bindtap="doSearch">搜索</button>
+    </view>
+    <view class="muted mt12">共 {{total}} 题 · 启用 {{enabled}} · 停用 {{disabled}}</view>
+  </view>
+
+  <view class="card" wx:for="{{list}}" wx:key="no">
+    <view class="q-head">
+      <text class="badge blue">#{{item.no}}</text>
+      <text class="badge gray">{{item.category}}</text>
+      <text class="badge {{item.enabled ? 'green' : 'red'}}">{{item.enabled ? '启用' : '停用'}}</text>
+      <button class="btn" size="mini" data-no="{{item.no}}" data-enabled="{{item.enabled}}" bindtap="toggle">
+        {{item.enabled ? '停用' : '启用'}}
+      </button>
+    </view>
+    <view class="q-title mt8">{{item.title}}</view>
+    <view class="opts-mini mt8">
+      <text class="{{item.answer==='A'?'ans':''}}">A.{{item.options.A}}</text>
+      <text class="{{item.answer==='B'?'ans':''}}">B.{{item.options.B}}</text>
+      <text class="{{item.answer==='C'?'ans':''}}">C.{{item.options.C}}</text>
+      <text class="{{item.answer==='D'?'ans':''}}">D.{{item.options.D}}</text>
+    </view>
+  </view>
+
+  <view class="row between mt16" wx:if="{{total>pageSize}}">
+    <button class="btn" size="mini" bindtap="prev" disabled="{{page===1}}">上一页</button>
+    <text class="muted">第 {{page}} 页</text>
+    <button class="btn" size="mini" bindtap="next" disabled="{{page*pageSize>=total}}">下一页</button>
+  </view>
+
+  <button class="btn primary block mt24" bindtap="openImport">批量导入题库</button>
+
+  <view wx:if="{{showImport}}" class="mask">
+    <view class="sheet card">
+      <view class="sec-title">粘贴题库 JSON 数组</view>
+      <view class="muted">字段：no, category, title, options{A,B,C,D}, answer(A-D), analysis</view>
+      <textarea class="ta" value="{{importText}}" bindinput="onImportText" placeholder='[{"no":151,"category":"安全生产","title":"示例题？","options":{"A":"a","B":"b","C":"c","D":"d"},"answer":"A","analysis":"解析"}]'></textarea>
+      <view wx:if="{{importMsg}}" class="form-error">{{importMsg}}</view>
+      <view class="row gap mt16">
+        <button class="btn block" bindtap="closeImport">取消</button>
+        <button class="btn primary block" bindtap="doImport">导入</button>
+      </view>
+    </view>
+  </view>
+</view>
